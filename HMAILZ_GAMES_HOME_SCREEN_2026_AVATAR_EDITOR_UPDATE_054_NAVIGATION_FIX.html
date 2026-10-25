@@ -1,0 +1,792 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#071126">
+<title>HMAILZ Games 3D</title>
+<style>
+:root{--bg:#071126;--panel:#101e38;--line:#294468;--cyan:#48eaff;--text:#f4f8ff;--muted:#a9bbd6}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:system-ui,Arial,sans-serif}body{overflow-x:hidden}button,input{font:inherit}button{cursor:pointer;touch-action:manipulation}
+header{position:relative;padding:14px 12px;text-align:center;background:#0a1730;border-bottom:1px solid var(--line)}.logo{cursor:pointer;user-select:none;font-size:clamp(27px,6vw,43px);font-weight:1000;letter-spacing:2px;color:var(--cyan);text-shadow:0 0 18px #48eaff4a}.subtitle{font-size:11px;letter-spacing:1px;color:var(--muted)}
+main{max-width:1050px;margin:auto;padding:12px}.panel{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:12px;margin-bottom:10px}.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.info{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap}.heading{font-weight:900;color:var(--cyan)}.small{font-size:12px;color:var(--muted);line-height:1.5}.score{color:#ffe477;font-weight:900}
+.games{display:grid;grid-template-columns:repeat(auto-fit,minmax(112px,1fr));gap:8px}.game,.btn{border:1px solid #36557c;border-radius:12px;background:#172947;color:white;padding:10px;font-weight:800}.game{text-align:left;min-height:68px}.game span{display:block;font-size:23px}.game.active{border-color:var(--cyan);box-shadow:0 0 0 1px var(--cyan)}.btn.primary{background:#07384b;border-color:var(--cyan);color:var(--cyan)}.btn.danger{border-color:#f36b7b;color:#ffabb5}
+#stage{position:relative;height:min(56vh,520px);min-height:290px;border:1px solid var(--line);border-radius:15px;overflow:hidden;background:#9bdcff;touch-action:none}#stage canvas{display:block;width:100%;height:100%}#toast{position:absolute;left:9px;top:9px;padding:7px 10px;background:#071126c9;border:1px solid #ffffff28;border-radius:9px;font-size:12px;pointer-events:none;max-width:80%}
+#forestDayBadge{position:absolute;right:10px;top:10px;padding:8px 11px;border-radius:10px;background:#102b1ee8;border:1px solid #6eff9a;color:#b9ffc9;font-weight:900;font-size:13px;pointer-events:none;box-shadow:0 2px 12px #0005}
+.hud{position:absolute;inset:0;pointer-events:none}.joystick{position:absolute;left:13px;bottom:13px;width:125px;height:125px;border-radius:50%;background:#0a183a70;border:2px solid #ffffff85;pointer-events:auto;touch-action:none;display:flex;align-items:center;justify-content:center;user-select:none}.stick{width:51px;height:51px;border-radius:50%;background:#bcefffcc;border:2px solid white;box-shadow:0 2px 12px #0006;transform:translate(0,0);pointer-events:none}.hudBtn{position:absolute;right:15px;bottom:18px;width:76px;height:76px;border-radius:50%;border:2px solid #ffffffd0;background:#ffcf4be8;color:#171b28;font-weight:1000;pointer-events:auto;touch-action:none}.hudBtn.secondary{right:100px;bottom:21px;width:62px;height:62px;background:#48eaffdf}.hudBtn.fire{background:#ff5367ef;color:white}.hidden{display:none!important}
+#settingsPanel{position:absolute;right:8px;top:8px;z-index:10;width:min(260px,88%);max-height:90%;overflow:auto;background:#071126f7;border:1px solid var(--cyan);border-radius:12px;padding:10px;pointer-events:auto}#settingsPanel .row{display:grid;grid-template-columns:1fr 1fr;gap:7px}#settingsPanel button{min-height:42px}#fpsBadge{position:absolute;left:8px;bottom:8px;background:#071126d9;color:#9effb7;border:1px solid #9effb755;border-radius:7px;padding:4px 7px;font:700 11px monospace;pointer-events:none}
+#accountGate{position:fixed;inset:0;z-index:1000;background:linear-gradient(145deg,#061020f5,#102b4df5);display:flex;align-items:center;justify-content:center;padding:18px}
+.gateCard{width:min(480px,100%);background:#101e38;border:1px solid #48eaff80;border-radius:20px;padding:22px;box-shadow:0 20px 70px #0009}
+.gateCard h2{margin:0 0 6px;color:var(--cyan);font-size:28px}.gateCard p{color:var(--muted);font-size:13px;line-height:1.5}
+#cityChat{position:absolute;right:10px;top:10px;width:min(250px,54%);background:#071126d9;border:1px solid #8be8ff80;border-radius:10px;padding:8px;pointer-events:auto}
+#chatLog{height:95px;overflow:auto;font-size:11px;line-height:1.4;color:#eaf7ff;margin-bottom:5px}
+#chatInput{width:100%;min-width:0;border:1px solid #36557c;background:#07152b;color:white;border-radius:7px;padding:7px}
+.raceControls{display:flex;gap:7px;flex-wrap:wrap;justify-content:center;margin:8px 0}.raceControls button{min-width:85px}
+#carSelectPanel{position:absolute;left:10px;top:10px;z-index:5;width:min(290px,68%);max-height:78%;overflow:auto;background:#071126ed;border:1px solid #48eaff;border-radius:12px;padding:9px;pointer-events:auto}#carSelectPanel .carGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;margin:7px 0}#carSelectPanel button{font-size:11px;padding:7px 4px;border-radius:7px;border:1px solid #57708f;background:#172947;color:white;font-weight:800}#carSelectPanel button.selected{border-color:#ffd45d;color:#ffe38b}#carSelectPanel .spawn{width:100%;background:#07384b;border-color:#48eaff;color:#48eaff}#carCorner{position:absolute;left:10px;top:10px;z-index:3;width:min(250px,48%);background:#071126e8;border:1px solid #ffd45d;border-radius:11px;padding:8px;pointer-events:auto}#carCorner .carChoices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;margin:6px 0}#carCorner button{font-size:11px;padding:6px 4px;border-radius:7px;border:1px solid #57708f;background:#172947;color:white;font-weight:800}#carCorner button.selected{border-color:#ffd45d;color:#ffe38b}#spawnCityCar{width:100%;background:#5a3b06!important;border-color:#ffd45d!important;color:#ffe38b!important;font-size:12px!important;padding:9px!important}
+
+.desktopControls{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:10px 0}.desktopControls .btn{min-width:70px}.authgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px}.field{width:100%;border:1px solid #36557c;background:#07152b;color:white;border-radius:9px;padding:10px;margin-top:4px}.label{font-size:12px;color:var(--muted)}.status{font-size:12px;color:#b9f8cf;min-height:18px}.warning{color:#ffd68a}footer{text-align:center;padding:8px 10px 20px}
+
+/* HMAILZ 2026-inspired home screen: UI only, no image assets */
+#homeScreen{display:none;max-width:1180px;margin:0 auto;padding:14px 16px 28px;color:#f7f9fc}
+#homeScreen.visible{display:block}
+.homeTop{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:8px 0 16px;border-bottom:1px solid #30343b}
+.homeBrand{font-size:25px;font-weight:1000;letter-spacing:-.8px;color:#fff}.homeBrand span{display:inline-grid;place-items:center;background:#e92d3b;border-radius:10px;width:34px;height:34px;margin-right:7px}
+.homeSearch{flex:1;min-width:170px;max-width:440px;background:#24272d;border:1px solid #454951;border-radius:10px;color:#fff;padding:12px 14px;outline:none}
+.homeNav{display:flex;gap:7px;flex-wrap:wrap}.homeNav button,.homeBack{border:0;border-radius:9px;padding:10px 13px;background:transparent;color:#dce0e6;font-weight:800}.homeNav button.selected{background:#30343b;color:#fff}
+.homeWelcome{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding:22px 0 12px}.homeWelcome h1{margin:0;font-size:clamp(24px,4vw,34px);letter-spacing:-.7px}.homeWelcome p{margin:5px 0 0;color:#aeb4bf;font-size:14px}
+.homeAvatar{display:flex;align-items:center;gap:10px;border:1px solid #383d45;background:#202329;border-radius:14px;padding:9px 13px;color:#fff;font-weight:800}.homeAvatar .avatarIcon{display:grid;place-items:center;width:40px;height:40px;border-radius:12px;background:#414754;font-size:24px}
+.homeSectionTitle{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:18px 0 10px}.homeSectionTitle h2{font-size:20px;margin:0}.homeSectionTitle span{font-size:12px;color:#aeb4bf}
+.homeCards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.homeGameCard{padding:0;text-align:left;overflow:hidden;min-width:0;border:1px solid #393e47;border-radius:14px;background:#202329;color:white;transition:transform .15s,border-color .15s}.homeGameCard:active{transform:scale(.98)}.homeGameArt{height:112px;display:flex;align-items:center;justify-content:center;font-size:49px;position:relative;background:linear-gradient(135deg,#36445b,#20232a)}.homeGameArt:after{content:'';position:absolute;inset:0;background:linear-gradient(0deg,#11151bcc,transparent 70%)}.homeGameArt b{position:absolute;left:10px;bottom:9px;z-index:1;font-size:12px;letter-spacing:.5px}.homeGameInfo{padding:10px 11px 12px}.homeGameInfo strong{display:block;font-size:14px;line-height:1.3}.homeGameInfo small{display:block;color:#aeb4bf;margin-top:5px;font-size:11px}.homePlay{margin-top:9px;display:inline-block;background:#e92d3b;border-radius:7px;padding:6px 10px;font-size:11px;font-weight:900}.homeFooter{display:flex;gap:8px;flex-wrap:wrap;margin-top:20px;color:#aeb4bf;font-size:12px}.homeFooter button{background:#272b32;color:#fff;border:1px solid #414650;border-radius:8px;padding:9px 12px;font-weight:800}
+body.homeMode{background:#17191e}body.homeMode header,body.homeMode main{display:none}body.homeMode #homeScreen{display:block}
+/* Clean game-launch view: keep the selected game and touch controls, not the old arcade chooser. */
+body.homePlaying{background:#10151d}
+body.homePlaying header{display:block;min-height:48px;padding:8px 12px;background:#111827;border-bottom:1px solid #303948}
+body.homePlaying header .logo,body.homePlaying header .subtitle{display:none}
+body.homePlaying #backHomeBtn{display:block!important;position:static!important;margin:0!important}
+body.homePlaying main{display:block;max-width:none;padding:8px;margin:0}
+body.homePlaying main > .panel:not(.small),body.homePlaying main > .games{display:none!important}
+body.homePlaying #stage{margin-top:0;min-height:55vh}
+body.homePlaying .desktopControls{margin-top:8px}
+body.homePlaying main > .panel.small{margin-top:8px}
+body.homePlaying main > footer{display:none}
+
+@media(max-width:760px){.homeCards{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.homeGameArt{height:100px}.homeTop{gap:8px}.homeBrand{font-size:21px}.homeSearch{order:3;max-width:none;flex-basis:100%}.homeNav{margin-left:auto}.homeWelcome{padding-top:17px}}
+@media(max-width:360px){.homeCards{grid-template-columns:1fr 1fr}.homeGameArt{height:84px;font-size:40px}.homeGameInfo{padding:8px}.homeGameInfo strong{font-size:12px}}
+
+
+/* UPDATE 053: Blocky Avatar + live Avatar Editor (CSS shapes, no images) */
+#avatarEditor{display:none;margin-top:18px;background:linear-gradient(145deg,#101a30,#171d2b);border:1px solid #354766;border-radius:18px;padding:16px}
+#avatarEditor.active{display:block}body.avatarMode #homeWelcome,body.avatarMode #homeContinue,body.avatarMode #homeRecommended,body.avatarMode .homeFooter,body.avatarMode>.nothing{display:none!important}
+.avatarLayout{display:grid;grid-template-columns:minmax(180px, .9fr) minmax(240px,1.1fr);gap:14px}.avatarPreview{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:340px;border-radius:14px;background:radial-gradient(ellipse at 50% 40%,#28548a,#101a2d 70%);border:1px solid #345579;overflow:hidden}.avatarName{font-weight:900;margin-top:12px}.blockPerson{position:relative;width:170px;height:250px;--skin:#f0b28b;--shirt:#17191e;--pants:#252a34;--hair:#171717;filter:drop-shadow(0 12px 8px #0005)}.blockHead{position:absolute;left:48px;top:18px;width:74px;height:74px;background:var(--skin);border-radius:7px;z-index:3;box-shadow:inset -6px 0 #00000012}.blockHair{position:absolute;left:43px;top:8px;width:84px;height:31px;background:var(--hair);border-radius:16px 16px 5px 5px;z-index:4}.blockHair:before,.blockHair:after{content:'';position:absolute;background:var(--hair);width:24px;height:26px;top:12px;border-radius:10px}.blockHair:before{left:5px;transform:rotate(-15deg)}.blockHair:after{right:5px;transform:rotate(15deg)}.blockFace{position:absolute;z-index:5;left:60px;top:48px;font-size:23px;letter-spacing:9px;color:#151515;white-space:nowrap}.blockBody{position:absolute;left:39px;top:92px;width:92px;height:79px;background:var(--shirt);border-radius:7px 7px 4px 4px;z-index:2}.blockArm{position:absolute;top:96px;width:28px;height:76px;background:var(--shirt);border-radius:5px}.blockArm.left{left:13px}.blockArm.right{right:13px}.blockHand{position:absolute;top:155px;width:27px;height:19px;background:var(--skin);border-radius:3px}.blockHand.left{left:13px}.blockHand.right{right:13px}.blockLeg{position:absolute;top:168px;width:40px;height:61px;background:var(--pants);border-radius:3px}.blockLeg.left{left:43px}.blockLeg.right{right:43px}.blockShoe{position:absolute;top:221px;width:43px;height:20px;background:#f3f6ff;border-radius:4px 4px 8px 8px}.blockShoe.left{left:39px}.blockShoe.right{right:39px}.avatarControls h2{margin:0 0 6px}.avatarControls .small{margin-bottom:12px}.choiceGroup{margin:12px 0}.choiceGroup label{display:block;font-size:12px;color:#aebbd0;margin-bottom:6px}.choiceRow{display:flex;gap:7px;flex-wrap:wrap}.choiceRow button{border:1px solid #425775;border-radius:9px;padding:9px 10px;background:#1c2a43;color:white;font-weight:800}.choiceRow button.selected{border-color:#27b9ff;box-shadow:0 0 0 2px #27b9ff55}.swatch{width:34px;height:34px;border:2px solid #66748a;border-radius:9px;padding:0!important}.avatarSave{width:100%;margin-top:14px;background:#0867d9!important;border-color:#168bff!important;color:white!important}.avatarNotice{min-height:18px;color:#7df7b1;font-size:12px;margin-top:8px}
+@media(max-width:650px){.avatarLayout{grid-template-columns:1fr}.avatarPreview{min-height:300px}.blockPerson{transform:scale(.9);margin:-8px 0}}
+
+</style>
+</head>
+<body>
+<div id="accountGate">
+ <div class="gateCard">
+  <h2>HMAILZ GAMES</h2>
+  <p>Welcome! Choose how you want to play. Guest progress stays on this device. Cloud accounts need Supabase setup by the site owner.</p>
+  <div class="row">
+   <button class="btn primary" id="gateGuest">Play as Guest</button>
+   <button class="btn" id="gateAccount">Create account / Sign in</button>
+  </div>
+  <div id="gateAuth" class="hidden" style="margin-top:12px">
+   <label><span class="label">Username</span><input class="field" id="username" maxlength="20" placeholder="Choose a username" autocomplete="username"></label>
+   <label><span class="label">Email (needed for secure account)</span><input class="field" id="email" type="email" autocomplete="email" placeholder="you@example.com"></label>
+   <label><span class="label">Password</span><input class="field" id="password" type="password" autocomplete="current-password" placeholder="At least 6 characters"></label>
+   <div class="row" style="margin-top:9px"><button class="btn primary" id="gateCreate">Create account</button><button class="btn" id="gateSignIn">Sign in</button><button class="btn" id="gateGuest2">Continue as Guest</button></div>
+   <div class="status" id="gateMessage"></div>
+  </div>
+ </div>
+</div>
+
+<section id="homeScreen" aria-label="HMAILZ Games home">
+ <div class="homeTop">
+  <div class="homeBrand"><span>H</span>HMAILZ</div>
+  <input class="homeSearch" id="homeSearch" type="search" placeholder="Search games" aria-label="Search games">
+  <nav class="homeNav" aria-label="Main navigation"><button class="selected" type="button" id="homeHomeBtn">Home</button><button type="button" id="homeDiscover">Discover</button><button type="button" id="homeAvatarBtn">Avatar</button></nav>
+ </div>
+ <div class="homeWelcome"><div><h1>Home</h1><p>What do you want to play today?</p></div><div class="homeAvatar"><span class="avatarIcon">🧑</span><span><span id="homePlayerName">Guest</span><br><small style="color:#aeb4bf;font-weight:500">Your HMAILZ profile</small></span></div></div>
+ <div class="homeSectionTitle"><h2>Continue</h2><span>Jump back into a game</span></div>
+ <div class="homeCards" id="homeContinue">
+  <button class="homeGameCard" data-home-game="obby"><div class="homeGameArt" style="background:linear-gradient(135deg,#4c3ba5,#21b8d0)">🧗<b>OBBY</b></div><div class="homeGameInfo"><strong>HMAILZ Obby 3D</strong><small>Jump, dodge, and collect coins</small><span class="homePlay">▶ PLAY</span></div></button>
+  <button class="homeGameCard" data-home-game="city"><div class="homeGameArt" style="background:linear-gradient(135deg,#247b9a,#2c405a)">🏙️<b>EXPLORE</b></div><div class="homeGameInfo"><strong>City Explorer</strong><small>Explore the city and drive</small><span class="homePlay">▶ PLAY</span></div></button>
+  <button class="homeGameCard" data-home-game="football"><div class="homeGameArt" style="background:linear-gradient(135deg,#17784e,#154f3b)">⚽<b>SPORTS</b></div><div class="homeGameInfo"><strong>Football Challenge 3D</strong><small>Play solo or choose a match</small><span class="homePlay">▶ PLAY</span></div></button>
+  <button class="homeGameCard" data-home-game="hideseek"><div class="homeGameArt" style="background:linear-gradient(135deg,#8b3e76,#422e72)">🫣<b>PARTY</b></div><div class="homeGameInfo"><strong>Hide &amp; Seek 3D</strong><small>Hide or find the hiders</small><span class="homePlay">▶ PLAY</span></div></button>
+ </div>
+ <div class="homeSectionTitle"><h2>Recommended for you</h2><span>More games</span></div>
+ <div class="homeCards" id="homeRecommended">
+  <button class="homeGameCard" data-home-game="basketball"><div class="homeGameArt" style="background:linear-gradient(135deg,#a64d1e,#6b2f1b)">🏀<b>SPORTS</b></div><div class="homeGameInfo"><strong>Basketball Challenge</strong><small>Take a shot at the hoop</small><span class="homePlay">▶ PLAY</span></div></button>
+  <button class="homeGameCard" data-home-game="carsim"><div class="homeGameArt" style="background:linear-gradient(135deg,#4d596c,#272b36)">🚘<b>DRIVING</b></div><div class="homeGameInfo"><strong>Car Simulator 3D</strong><small>Choose a car and drive</small><span class="homePlay">▶ PLAY</span></div></button>
+  <button class="homeGameCard" data-home-game="pets"><div class="homeGameArt" style="background:linear-gradient(135deg,#c75b8d,#7544a8)">🐾<b>SIMULATOR</b></div><div class="homeGameInfo"><strong>Pet Simulator</strong><small>Meet your cute pet</small><span class="homePlay">▶ PLAY</span></div></button>
+  <button class="homeGameCard" data-home-game="zombie"><div class="homeGameArt" style="background:linear-gradient(135deg,#4b6935,#273a2a)">🧟<b>SURVIVAL</b></div><div class="homeGameInfo"><strong>Zombie Survival</strong><small>Stay safe and survive</small><span class="homePlay">▶ PLAY</span></div></button>
+ </div>
+ <section id="avatarEditor" aria-label="Avatar editor">
+  <div class="info"><div><h1 style="margin:0">🧑 Blocky Avatar Editor</h1><p class="small">Make your HMAILZ character your own. Changes save on this device.</p></div><button type="button" class="btn" id="avatarBack">← Back to Home</button></div>
+  <div class="avatarLayout" style="margin-top:12px">
+   <div class="avatarPreview"><div class="blockPerson" id="blockPerson"><div class="blockHair"></div><div class="blockHead"></div><div class="blockFace">● ●<br>　⌣</div><div class="blockArm left"></div><div class="blockArm right"></div><div class="blockHand left"></div><div class="blockHand right"></div><div class="blockBody"></div><div class="blockLeg left"></div><div class="blockLeg right"></div><div class="blockShoe left"></div><div class="blockShoe right"></div></div><div class="avatarName" id="avatarPreviewName">HMAILZ Player</div><div class="small">Live preview</div></div>
+   <div class="avatarControls panel" style="margin:0"><h2>Customize</h2><div class="choiceGroup"><label>Avatar name</label><input class="field" id="avatarNameInput" maxlength="20" placeholder="HMAILZ Player" value="HMAILZ Player"></div>
+    <div class="choiceGroup"><label>Hair style</label><div class="choiceRow" id="hairChoices"><button type="button" data-hair="spiky" class="selected">Spiky</button><button type="button" data-hair="cap">Cap</button><button type="button" data-hair="smooth">Smooth</button></div></div>
+    <div class="choiceGroup"><label>Hair color</label><div class="choiceRow" id="hairColors"><button class="swatch selected" type="button" data-color="#171717" style="background:#171717" aria-label="Black hair"></button><button class="swatch" type="button" data-color="#754326" style="background:#754326" aria-label="Brown hair"></button><button class="swatch" type="button" data-color="#f0e5d2" style="background:#f0e5d2" aria-label="Blonde hair"></button><button class="swatch" type="button" data-color="#e63d45" style="background:#e63d45" aria-label="Red hair"></button><button class="swatch" type="button" data-color="#347dff" style="background:#347dff" aria-label="Blue hair"></button></div></div>
+    <div class="choiceGroup"><label>Skin tone</label><div class="choiceRow" id="skinColors"><button class="swatch" type="button" data-color="#f7d2b4" style="background:#f7d2b4" aria-label="Light skin"></button><button class="swatch selected" type="button" data-color="#f0b28b" style="background:#f0b28b" aria-label="Medium skin"></button><button class="swatch" type="button" data-color="#b8754d" style="background:#b8754d" aria-label="Brown skin"></button><button class="swatch" type="button" data-color="#70452f" style="background:#70452f" aria-label="Dark skin"></button></div></div>
+    <div class="choiceGroup"><label>Shirt</label><div class="choiceRow" id="shirtColors"><button class="swatch selected" type="button" data-color="#17191e" style="background:#17191e" aria-label="Black shirt"></button><button class="swatch" type="button" data-color="#e92d3b" style="background:#e92d3b" aria-label="Red shirt"></button><button class="swatch" type="button" data-color="#1478ed" style="background:#1478ed" aria-label="Blue shirt"></button><button class="swatch" type="button" data-color="#19a96b" style="background:#19a96b" aria-label="Green shirt"></button><button class="swatch" type="button" data-color="#f4f6fb" style="background:#f4f6fb" aria-label="White shirt"></button></div></div>
+    <div class="choiceGroup"><label>Pants</label><div class="choiceRow" id="pantsColors"><button class="swatch selected" type="button" data-color="#252a34" style="background:#252a34" aria-label="Dark pants"></button><button class="swatch" type="button" data-color="#23539a" style="background:#23539a" aria-label="Blue pants"></button><button class="swatch" type="button" data-color="#5a4638" style="background:#5a4638" aria-label="Brown pants"></button><button class="swatch" type="button" data-color="#dce2ed" style="background:#dce2ed" aria-label="Light pants"></button></div></div>
+    <div class="row"><button type="button" class="btn avatarSave" id="saveAvatar">💾 Save Avatar</button><button type="button" class="btn" id="resetAvatar">Reset</button></div><div class="avatarNotice" id="avatarNotice" role="status"></div>
+   </div>
+  </div>
+ </section>
+ <div class="homeFooter"><span>HMAILZ Games · Home screen</span><button type="button" id="homeAllGames">🎮 All games</button></div>
+</section>
+
+<header><div class="logo">HMAILZ GAMES</div><button class="btn" id="backHomeBtn" style="position:absolute;left:10px;top:10px">🏠 Home</button><div class="subtitle">3D MINI ARCADE • TOUCH CONTROLS • SAVE YOUR PROGRESS</div></header>
+<main>
+<section class="panel">
+ <div class="info"><div><div class="heading" id="welcome">Player: Guest</div><div class="small" id="accountStatus">Guest mode — progress is saved on this device.</div></div><button class="btn primary" id="toggleAuth">Sign in / Create account</button></div>
+ <div id="authPanel" class="hidden" style="margin-top:12px">
+  <div class="small warning">Real accounts need a Supabase project. Follow the setup instructions near the end of this file, and never put a service-role key in a website.</div>
+  <div class="authgrid">
+   <label><span class="label">Email</span><input class="field" id="emailOld" type="email" autocomplete="email" placeholder="you@example.com"></label>
+   <label><span class="label">Password</span><input class="field" id="passwordOld" type="password" autocomplete="current-password" placeholder="Use a strong password"></label>
+  </div>
+  <div class="row" style="margin-top:9px"><button class="btn primary" id="signUp">Create account</button><button class="btn" id="signIn">Sign in</button><button class="btn danger hidden" id="signOut">Sign out</button></div>
+  <div class="status" id="authMessage"></div>
+ </div>
+</section>
+<section class="games" aria-label="Choose a game">
+ <button class="game active" data-game="obby"><span>🧗</span>Obby</button>
+ <button class="game" data-game="learn3d"><span>🎮</span>Learn How to Play 3D</button>
+ <button class="game" data-game="hideseek"><span>🫣</span>Hide &amp; Seek 3D</button>
+ <button class="game" data-game="city"><span>🏙️</span>City Explorer</button>
+ <button class="game" data-game="coins"><span>🪙</span>Coin Collector</button>
+ <button class="game" data-game="basketball"><span>🏀</span>Basketball</button>
+ <button class="game" data-game="zombie"><span>🧟</span>Zombie Survival</button>
+ <button class="game" data-game="pets"><span>🐾</span>Pet Simulator</button>
+ <button class="game" data-game="football"><span>⚽</span>Football Challenge 3D</button>
+ <button class="game" data-game="disaster"><span>🌪️</span>Disaster Survival 3D</button>
+ <button class="game" data-game="prison"><span>🚨</span>Prison Escape 3D</button>
+ <button class="game" data-game="blaster"><span>🔫</span>Blaster Battle 3D</button>
+ <button class="game" data-game="tower"><span>🗼</span>Tower Climb 3D</button>
+ <button class="game" data-game="carsim"><span>🚘</span>Car Simulator 3D</button>
+ <button class="game" data-game="garden"><span>🌷</span>Cozy Garden 3D</button>
+</section>
+<section class="panel info" style="margin-top:10px"><div><div class="heading" id="gameTitle">HMAILZ Obby</div><div class="small" id="gameHelp">Move with the joystick and jump between platforms.</div></div><div class="score">Coins: <span id="coinsTotal">0</span> · Score: <span id="score">0</span></div></section>
+<div id="stage"><div id="toast">Loading 3D world…</div><div id="forestDayBadge" class="hidden">🌲 DAY 1 / 140</div><div class="hud"><div id="footballTeamsSign" class="hidden" style="position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:7;white-space:nowrap;background:#111827ed;border:2px solid #f02f45;border-radius:12px;padding:7px 10px;color:#fff;font-weight:900;letter-spacing:.3px;text-shadow:0 1px 2px #000">🔴 RED <span style="color:#cbd5e1">VS</span> 🔵 BLUE · <span id="teamSizeLabel">2v2</span></div><button id="footballMenuBtn" class="hudBtn hidden" aria-label="Open football team-size menu" style="position:absolute;right:15px;top:64px;bottom:auto;width:58px;height:52px;border-radius:12px;background:#ffd447;color:#071126;font-size:27px;z-index:9">⚽</button><div id="footballMenuPanel" class="hidden" style="position:absolute;right:12px;top:122px;z-index:12;background:#101827f5;border:2px solid #ffd447;border-radius:14px;padding:12px;width:160px;pointer-events:auto;color:#fff"><div style="font-weight:900;margin-bottom:8px">⚽ MATCH SIZE</div><button class="btn football-size" data-size="1" style="width:100%;margin:3px 0">👤 SOLO — JUST ME</button><button class="btn football-size" data-size="2" style="width:100%;margin:3px 0">2v2</button><button class="btn football-size" data-size="3" style="width:100%;margin:3px 0">3v3</button><button class="btn football-size" data-size="4" style="width:100%;margin:3px 0">4v4</button><div class="small" style="margin-top:6px">Tap a team size!</div></div><div id="carSelectPanel" class="hidden"><div class="heading">🚘 CHOOSE YOUR CAR</div><div class="small">Tap a car, then press DRIVE THIS CAR.</div><div class="carGrid" id="carGrid"></div><button id="spawnSelectedCar" class="spawn">DRIVE THIS CAR 🚗</button><div class="small" id="carSelectStatus">Sports Car selected</div></div><div id="carCorner" class="hidden"><div class="heading" style="color:#ffe38b">🚘 BROOKHAVEN CAR CORNER</div><div class="small">Choose a car, then spawn it!</div><div class="carChoices"><button data-city-car="Sports Car" class="selected">🏎️ Sports</button><button data-city-car="Sedan">🚘 Sedan</button><button data-city-car="SUV">🚙 SUV</button><button data-city-car="Taxi">🚕 Taxi</button><button data-city-car="Police Car">🚓 Police</button></div><button id="spawnCityCar">SPAWN CAR 🚗</button><div class="small" id="carCornerStatus">Pick a vehicle to begin.</div></div><div id="cityMapPanel" class="hidden" style="position:absolute;right:10px;bottom:10px;z-index:4;background:#071126e8;border:1px solid #48eaff;border-radius:10px;padding:6px;width:150px;pointer-events:auto"><div class="heading">🗺️ CITY MAP</div><canvas id="cityMap" width="136" height="110" style="width:100%;height:auto;display:block"></canvas></div><button id="settingsBtn" class="btn" style="position:absolute;right:8px;top:8px;z-index:9;padding:7px 9px;pointer-events:auto">⚙️ Settings</button><div id="fpsBadge" class="hidden">FPS: --</div><div id="settingsPanel" class="hidden"><b>⚙️ Game settings</b><div class="small" style="margin:6px 0">FPS: <span id="fpsValue">--</span></div><div class="row"><button class="btn" id="fpsToggle">Show FPS</button><button class="btn" id="restartCharacter">Restart character</button><button class="btn danger" id="leaveGame">Leave game</button><button class="btn" id="closeSettings">Close</button></div></div><button id="carMenuEmojiBtn" class="hudBtn hidden" aria-label="Open or close car menu" style="position:absolute;right:15px;top:170px;bottom:auto;width:58px;height:52px;border-radius:12px;background:#ffd447;color:#071126;font-size:25px;z-index:8">🚘</button><button id="mapBtn" class="hudBtn hidden" style="right:15px;top:115px;bottom:auto;width:58px;height:48px;border-radius:12px;background:#48eaff">MAP</button><button id="chatToggle" class="btn" style="position:absolute;right:10px;top:58px;z-index:10;pointer-events:auto">💬</button><div id="cityChat" class="hidden"><div class="heading">City chat</div><div id="chatLog">Bot: Welcome to HMAILZ City!</div><div class="row"><input id="chatInput" placeholder="Say something…" maxlength="90"><button class="btn primary" id="chatSend">Send</button></div></div><div id="joystick" class="joystick" aria-label="Movement joystick"><div id="stick" class="stick"></div></div><button id="jumpBtn" class="hudBtn">JUMP</button><button id="fireBtn" class="hudBtn fire hidden">FIRE</button><button id="actionBtn" class="hudBtn secondary hidden">ACT</button><button id="passBtn" class="hudBtn hidden" style="right:15px;bottom:132px;background:#48eaff;color:#071126">PASS</button><button id="powerShotBtn" class="hudBtn hidden" style="right:15px;bottom:72px;background:#ff704d;color:#fff">POWER<br>SHOT</button></div></div>
+<div id="raceControls" class="raceControls hidden"><button class="btn primary" id="spawnCarBtn">🔄 New round</button><span class="btn" id="hideRole" aria-live="polite">Role: waiting…</span><span class="btn" id="hideTimer">Time: 60</span></div>
+<div class="desktopControls"><button class="btn" id="leftBtn">◀ Left</button><button class="btn" id="forwardBtn">▲ Forward</button><button class="btn" id="jumpDesktop">Jump</button><button class="btn" id="backBtn">▼ Back</button><button class="btn" id="rightBtn">Right ▶</button><button class="btn primary" id="restartBtn">Restart game</button></div>
+<section class="panel small"><b>Controls:</b> Drag and hold the left joystick to move continuously. Drag the open 3D world to rotate the camera left/right/up/down, like Roblox. Hold the arrow buttons too. Use JUMP for platforms. In Hide & Seek, move and hide if you are a hider, or tag the hiders if you are the seeker. In Zombie Survival, press FIRE to shoot. Keyboard: WASD/arrow keys, Space to jump, F to fire.<br><b>Account note:</b> Until Supabase is configured, the game works in guest mode and saves totals on this device. After setup, sign-in enables cloud saves.</section>
+<footer class="small">HMAILZ Games 3D · Original mini-game prototype. NPC chat is local demo chat; real multiplayer 1v1 and real secure accounts require a backend/server setup.</footer>
+</main>
+<script type="module">
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js';
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+
+/* SUPABASE SETUP:
+1. Create a project at https://supabase.com/
+2. Project Settings -> API: copy Project URL and anon/public key into the two values below.
+3. NEVER use the service_role/secret key in browser code.
+4. In Supabase SQL Editor, run the SQL shown at the bottom of this HTML file.
+5. Authentication -> URL Configuration: add your published Ship.page URL.
+*/
+const SUPABASE_URL='PASTE_YOUR_SUPABASE_PROJECT_URL_HERE';
+const SUPABASE_ANON_KEY='PASTE_YOUR_SUPABASE_ANON_PUBLIC_KEY_HERE';
+const supabaseReady=SUPABASE_URL.startsWith('https://')&&!SUPABASE_URL.includes('PASTE_')&&!SUPABASE_ANON_KEY.includes('PASTE_');
+const supabase=supabaseReady?createClient(SUPABASE_URL,SUPABASE_ANON_KEY):null;
+const $=s=>document.querySelector(s),stage=$('#stage'),toast=$('#toast');
+const scoreEl=$('#score'),coinsEl=$('#coinsTotal'),gameTitle=$('#gameTitle'),gameHelp=$('#gameHelp');
+const info={
+ obby:['HMAILZ Obby 3D — NEON SKY RUN','Jump across neon sky platforms, collect bonus coins, pass the glowing rings and reach the green goal.'],
+ learn3d:['Learn How to Play 3D','Practice moving, jumping, collecting tokens, and using FIRE in a safe 3D training world. Follow the glowing checkpoints.'],
+ hideseek:['HMAILZ Hide & Seek 3D','A random player is chosen as seeker each round! Hide behind buildings and trees, or chase the hiders.'],
+ city:['HMAILZ City Explorer','Explore the city, meet NPC bots and chat with the local bot characters.'],
+ coins:['Coin Collector','Move around and collect gold coins.'],
+ basketball:['Basketball Challenge','Move near the ball and press ACT to shoot at the hoop.'],
+ zombie:['Zombie Survival','Move with the joystick and press FIRE to shoot zombies.'],
+ pets:['Pet Simulator','Collect coins and treats, hatch a mystery egg, and let your cute pet follow you around the meadow. Press ACT near the egg to hatch!'],
+ spacecrew:['HMAILZ Space Crew 3D: STARSHIP MISSION','Crew: finish 6 console tasks and survive. Impostor: tag every crewmate. Use the joystick and ACTION button.'],
+ disaster:['HMAILZ Disaster Survival 3D','Survive the city disaster! Watch for warning markers and dodge falling debris. Restart for a new round.'],
+ prison:['Prison Escape 3D','Sneak through the prison yard, collect 5 keycards, then reach the glowing escape gate!'],
+ blaster:['Blaster Battle 3D','Blast the training bots, dodge their arena, and score points! Tap FIRE to shoot.'],
+ tower:['Tower Climb 3D','Jump up the colorful tower platforms. Reach the glowing top to win bonus points!'],
+ carsim:['HMAILZ Car Simulator 3D','Drive a fast car around the open test track. Hold forward to accelerate; steer with the joystick. Choose from 12 cars!'],
+ garden:['Cozy Garden 3D','Explore a colorful garden, collect stars and treats, visit butterflies, and grow your peaceful paradise.'],
+ football:['Football Challenge 3D','Your teammate makes runs toward the goal. Use PASS to switch players and POWER SHOT for a fast, exciting shot with a controlled arc.']
+};
+const scene=new THREE.Scene(),camera=new THREE.PerspectiveCamera(60,1,.1,200);
+const renderer=new THREE.WebGLRenderer({antialias:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio||1,1.6));renderer.shadowMap.enabled=false;renderer.shadowMap.type=THREE.BasicShadowMap;
+renderer.outputColorSpace=THREE.SRGBColorSpace;stage.insertBefore(renderer.domElement,stage.firstChild);
+scene.add(new THREE.HemisphereLight(0xe4f5ff,0x526044,2.1));
+const sun=new THREE.DirectionalLight(0xfff3d8,2.2);sun.position.set(-18,28,12);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);sun.castShadow=false;scene.add(sun);
+const mat=(c,r=.85)=>new THREE.MeshStandardMaterial({color:c,roughness:r});
+const M={road:mat(0x303743),line:mat(0xf7f3d7),blue:mat(0x248bff),pink:mat(0xff4fc8),red:mat(0xf34a58),yellow:mat(0xffd447),green:mat(0x38ef8d),dark:mat(0x202a40),skin:mat(0xffc69b),glass:mat(0x8be8ff,.35),gold:mat(0xffd52a,.35),zombie:mat(0x79b85b),orange:mat(0xff872e),pet:mat(0xff9ce8),trunk:mat(0x70472e),leaf:mat(0x23844a),concrete:mat(0xb7c1cb),window:mat(0x77cfe9,.35)};
+let cameraYaw=0,cameraHeight=5.5,cameraDrag=null;
+let world=null,player=null,teammate=null,blueTeamBots=[],teamSize=2,redTeamBots=[],pet=null,car=null,ball=null,gun=null,game='obby',score=0,totalCoins=0,time=0,vy=0,onGround=true,driveX=0,raceSpeed=0,cityBots=[],duelBot=null,spawnedCars=[],zombieSpawnTimer=0,hidePlayers=[],hideBuildings=[],hideRole='hider',hideTimer=60,hideRoundOver=false,selectedCityCar='Sports Car',cityRideCar=null,showroomCars=[],crewBots=[],taskPoints=[],spaceRole='crew',spaceTimer=90,spaceOver=false;
+let pickups=[],enemies=[],traffic=[],bullets=[],disasterDebris=[],disasterClock=0,fpsFrames=0,fpsElapsed=0,currentFps=0,showFps=false;
+let forestDay=1,forestDayTimer=0;const FOREST_DAY_SECONDS=30,FOREST_MAX_DAY=140;
+let stickState={x:0,y:0,active:false,id:null,cx:0,cy:0,r:48},keys={},held={left:false,right:false,forward:false,back:false};
+let session=null,lastSave=0;
+let progress={coins:0,scores:{}};
+try{progress=JSON.parse(localStorage.getItem('hmailz_progress')||'{"coins":0,"scores":{}}')}catch{}
+totalCoins=Number(progress.coins)||0;coinsEl.textContent=totalCoins;
+function box(p,x,y,z,w,h,d,m,cast=true){const o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m);o.position.set(x,y,z);o.castShadow=cast;o.receiveShadow=true;p.add(o);return o}
+function sphere(p,x,y,z,r,m){const o=new THREE.Mesh(new THREE.SphereGeometry(r,16,12),m);o.position.set(x,y,z);o.castShadow=true;p.add(o);return o}
+function cylinder(p,x,y,z,rt,rb,h,m,n=12){const o=new THREE.Mesh(new THREE.CylinderGeometry(rt,rb,h,n),m);o.position.set(x,y,z);o.castShadow=true;p.add(o);return o}
+function floor(w=40,d=50,c=0x55b85a,z=0){box(world,0,-.38,z,w,.76,d,mat(c),false)}
+function makePlayer(color=0x248bff){
+ player=new THREE.Group();world.add(player);
+ box(player,0,.75,0,.72,.88,.42,mat(color));box(player,0,1.36,0,.58,.55,.55,M.skin);box(player,0,1.68,0,.63,.17,.61,M.yellow);
+ box(player,-.16,1.4,-.285,.09,.09,.035,M.dark,false);box(player,.16,1.4,-.285,.09,.09,.035,M.dark,false);
+ box(player,-.21,.18,0,.22,.32,.26,M.dark);box(player,.21,.18,0,.22,.32,.26,M.dark);
+ box(player,-.48,.85,0,.2,.62,.2,mat(color));box(player,.48,.85,0,.2,.62,.2,mat(color));
+}
+function makeBot(color=0xff4d66){const g=new THREE.Group();world.add(g);box(g,0,.75,0,.72,.88,.42,mat(color));box(g,0,1.36,0,.58,.55,.55,M.skin);box(g,0,1.68,0,.63,.17,.61,M.yellow);box(g,-.16,1.4,-.285,.09,.09,.035,M.dark,false);box(g,.16,1.4,-.285,.09,.09,.035,M.dark,false);box(g,-.21,.18,0,.22,.32,.26,M.dark);box(g,.21,.18,0,.22,.32,.26,M.dark);box(g,-.48,.85,0,.2,.62,.2,mat(color));box(g,.48,.85,0,.2,.62,.2,mat(color));return g;}
+function makeCar(x=0,z=5,color=0xff3c4e){
+ car=new THREE.Group();world.add(car);
+ box(car,0,.48,0,1.75,.48,2.7,mat(color));box(car,0,.86,-.22,1.22,.48,1.25,M.glass);
+ box(car,0,.77,.96,1.35,.16,.25,mat(0xffe5a1));box(car,0,.72,-1.25,1.4,.15,.18,mat(0xff263c));
+ for(const sx of [-.92,.92])for(const sz of [-.82,.82]){const w=cylinder(car,sx,.27,sz,.25,.25,.16,M.dark,16);w.rotation.z=Math.PI/2;const hub=cylinder(car,sx,.27,sz,.12,.12,.17,mat(0x9da9b8),12);hub.rotation.z=Math.PI/2}
+ car.position.set(x,0,z);
+}
+function tree(x,z,s=1){const g=new THREE.Group();world.add(g);g.position.set(x,0,z);g.scale.setScalar(s);cylinder(g,0,.85,0,.18,.24,1.7,M.trunk,8);sphere(g,0,2,0,.95,M.leaf);sphere(g,-.45,1.8,.05,.6,mat(0x2e9b53));sphere(g,.42,2.25,-.1,.58,mat(0x36a85b))}
+function lamp(x,z){cylinder(world,x,1.8,z,.07,.07,3.6,mat(0x343c4b),8);box(world,x+.38,3.48,z,.85,.1,.12,mat(0x343c4b));sphere(world,x+.72,3.4,z,.17,mat(0xfff0a1))}
+function building(x,z,w,h,d,color){
+ const g=new THREE.Group();world.add(g);g.position.set(x,h/2,z);box(g,0,0,0,w,h,d,mat(color));
+ for(let y=-h/2+1;y<h/2-.4;y+=1.55)for(let xx=-w/2+.45;xx<w/2-.25;xx+=1.15){box(g,xx,y,-d/2-.025,.55,.65,.045,M.window,false);box(g,xx,y-.4,-d/2-.05,.62,.055,.055,mat(0xdce8ef),false)}
+ // Front entrance on every building, with a frame, door panel, handle and small awning.
+ const doorW=Math.min(1.05,w*.32), doorH=Math.min(1.8,h*.55);
+ box(g,0,-h/2+doorH/2+.04,-d/2-.075,doorW,doorH,.11,mat(0x69452f),false);
+ box(g,0,-h/2+doorH/2+.04,-d/2-.14,doorW+.16,doorH+.12,.07,mat(0xe8d5b4),false);
+ box(g,0,-h/2+doorH/2+.04,-d/2-.19,doorW-.12,doorH-.12,.045,mat(0x8b6042),false);
+ sphere(g,doorW*.28,-h/2+doorH/2,-d/2-.23,.045,mat(0xffd35b));
+ box(g,0,-h/2+doorH+.16,-d/2-.19,doorW+.38,.12,.42,mat(0x435c79),false);
+ // Side-facing windows so buildings look finished from every street direction.
+ for(let y=-h/2+1.05;y<h/2-.45;y+=1.65){
+  for(let zz=-d/2+.65;zz<d/2-.35;zz+=1.25){
+   box(g,w/2+.026,y,zz,.045,.62,.55,M.window,false);
+   box(g,-w/2-.026,y,zz,.045,.62,.55,M.window,false);
+  }
+ }
+ box(g,0,h/2+.08,0,w+.15,.16,d+.15,mat(0x364a63));
+ // Small rooftop equipment and ledges make the skyline feel less like plain blocks.
+ if(h>9){box(g,w*.22,h/2+.35,0,Math.max(.55,w*.24),.42,Math.max(.55,d*.22),mat(0x56677d));box(g,-w*.28,h/2+.22,0,Math.max(.5,w*.18),.18,Math.max(.5,d*.18),mat(0x8796a8));}
+ for(let xx=-w/2+.5;xx<w/2-.35;xx+=1.5){box(g,xx,-h/2+.45,-d/2-.11,.08,.08,.12,mat(0xe4edf5),false)}
+}
+function pickup(x,y,z,type='coin'){const o=sphere(world,x,y,z,type==='treat'?.34:.27,type==='treat'?M.green:M.gold);o.userData={type,baseY:y};pickups.push(o)}
+function obstacleCar(x,z,color){const g=new THREE.Group();world.add(g);box(g,0,.43,0,1.5,.48,2.35,mat(color));box(g,0,.82,-.18,1.05,.4,1.05,M.glass);for(const sx of [-.78,.78])for(const sz of [-.72,.72]){const w=cylinder(g,sx,.22,sz,.2,.2,.13,M.dark);w.rotation.z=Math.PI/2}g.position.set(x,0,z);return g}
+function spawnZombie(){
+ if(!world)return;
+ const e=new THREE.Group();world.add(e);
+ sphere(e,0,1.22,0,.42,M.zombie);box(e,0,.58,0,.65,.8,.45,M.zombie);
+ box(e,-.4,.62,-.04,.16,.65,.16,M.zombie);box(e,.4,.62,-.04,.16,.65,.16,M.zombie);
+ sphere(e,-.14,1.27,-.36,.06,M.red);sphere(e,.14,1.27,-.36,.06,M.red);
+ const px=player?player.position.x:0,pz=player?player.position.z:0;
+ e.position.set(px+(Math.random()-.5)*26,0,pz-12-Math.random()*22);
+ e.userData={hp:2,speed:.8+Math.random()*.55};enemies.push(e);
+}
+function makeSpaceCharacter(color,parent=world){
+ const g=new THREE.Group();if(parent)parent.add(g);const suit=mat(color,.38),visor=mat(0x8cecff,.12),pack=mat(0x46566d,.5),shine=mat(0xffffff,.2);
+ // Chunky polished space-suit with a large glass visor, side arms, backpack and boots.
+ cylinder(g,0,.68,0,.43,.43,.94,suit,20);sphere(g,0,1.23,0,.43,suit);box(g,.03,1.25,-.375,.57,.32,.12,visor);box(g,.03,1.34,-.445,.25,.045,.018,shine,false);box(g,0,.68,.45,.28,.5,.24,pack);
+ cylinder(g,-.48,.72,0,.14,.14,.52,suit,12);cylinder(g,.48,.72,0,.14,.14,.52,suit,12);cylinder(g,-.22,.14,0,.17,.17,.28,pack,12);cylinder(g,.22,.14,0,.17,.17,.28,pack,12);
+ box(g,0,.98,.585,.22,.09,.035,mat(0xffffff,.35),false);return g;
+}
+function resetWorld(){
+ if(world)scene.remove(world);world=new THREE.Group();scene.add(world);pickups=[];enemies=[];traffic=[];bullets=[];cityBots=[];spawnedCars=[];showroomCars=[];cityRideCar=null;crewBots=[];taskPoints=[];disasterDebris=[];disasterClock=0;spaceTimer=90;spaceOver=false;duelBot=null;hidePlayers=[];hideBuildings=[];hideTimer=60;hideRoundOver=false;player=teammate=pet=car=ball=gun=null;redTeamBots=[];blueTeamBots=[];score=0;scoreEl.textContent='0';vy=0;onGround=true;driveX=0;raceSpeed=0;forestDay=1;forestDayTimer=0;$('#forestDayBadge').textContent='🌲 DAY 1 / 140';$('#forestDayBadge').classList.add('hidden');
+ gameTitle.textContent=info[game][0];gameHelp.textContent=info[game][1];toast.textContent=info[game][1];
+ scene.background=new THREE.Color(game==='spacecrew'?0x070d20:game==='zombie'?0x202b39:game==='city'?0x91d8ff:0x9bdcff);scene.fog=new THREE.Fog(scene.background,game==='city'?48:game==='spacecrew'?65:45,game==='city'?105:game==='spacecrew'?125:100);
+ $('#footballTeamsSign').classList.toggle('hidden',game!=='football'||teamSize===1);$('#footballMenuBtn').classList.toggle('hidden',game!=='football');$('#footballMenuPanel').classList.add('hidden');$('#fireBtn').classList.toggle('hidden',!['zombie','city','spacecrew','blaster'].includes(game));$('#fireBtn').textContent=game==='city'?'TAG':game==='spacecrew'?'ACTION':'FIRE';$('#mapBtn').classList.toggle('hidden',game!=='city');$('#cityMapPanel').classList.add('hidden');$('#actionBtn').classList.toggle('hidden',!['basketball','football','pets'].includes(game));$('#passBtn').classList.toggle('hidden',game!=='football'||teamSize===1);$('#powerShotBtn').classList.toggle('hidden',game!=='football');$('#jumpBtn').classList.toggle('hidden',false);$('#raceControls').classList.toggle('hidden',!['hideseek','spacecrew'].includes(game));$('#cityChat').classList.toggle('hidden',game!=='city');$('#carCorner').classList.toggle('hidden',game!=='city');$('#carSelectPanel').classList.toggle('hidden',game!=='carsim');$('#carMenuEmojiBtn').classList.toggle('hidden',game!=='carsim');$('#settingsPanel').classList.add('hidden');$('#carSelectPanel').classList.toggle('hidden',game!=='carsim');
+ if(game==='learn3d'){
+  floor(42,58,0x397d4b,-8);
+  // Three-dimensional training lane with solid rails and visible checkpoint arches.
+  box(world,0,.05,-7,8,.12,48,mat(0x597c9b),false);
+  for(const x of [-4.2,4.2])box(world,x,.65,-7,.35,1.3,48,mat(0x243c5a),false);
+  for(let i=0;i<4;i++){
+   const z=8-i*9;
+   box(world,0,1.4,z,3.4,.18,2.4,mat([0x48eaff,0xffd45d,0xff7bc8,0x8dff91][i]),false);
+   for(const x of [-1.7,1.7])cylinder(world,x,2.1,z,.08,.08,1.3,mat(0xffffff),12);
+   box(world,0,2.75,z,3.5,.12,.14,mat(0xffffff),false);
+   pickup(0,2,z,'coin');
+  }
+  // Training targets for FIRE practice.
+  for(let i=0;i<3;i++){const b=makeBot([0xff5b72,0x6ee7ff,0xffd45d][i]);b.position.set(-5+i*5,0,-18);}
+  makePlayer(0x48eaff);player.position.set(0,0,15);
+  toast.textContent='🎮 TRAINING: joystick to move • JUMP to climb • collect tokens • FIRE to practice!';
+ }
+ if(game==='obby'){
+  // Neon sky-obby upgrade: retain the original route and collision path.
+  floor(22,100,0x101a35,-25);
+  // A glowing runway and side rails make the course easier to read in 3D.
+  box(world,0,-.02,8,7,.12,7,mat(0x253d62),false);
+  for(const x of [-10.2,10.2]){
+   box(world,x,.25,-22,.18,.5,72,mat(0x344a70),false);
+   for(let z=10;z>-55;z-=6) sphere(world,x,.62,z,.13,M.cyan||mat(0x48eaff));
+  }
+  for(let i=0;i<12;i++){
+   const x=Math.sin(i*1.35)*4.2,z=8-i*5.2,y=i*.32;
+   box(world,x,y,z,3.5,.5,3.5,i%2?M.blue:M.pink);
+   box(world,x,y+.27,z,3.1,.08,3.1,mat(i%2?0x65d9ff:0xff9be5),false);
+   if(i%3===0)box(world,x,y+.38,z,1.05,.16,1.05,M.yellow);
+   // Floating bonus coins along the route.
+   if(i%2===0)pickup(x+(i%4===0?1.0:-1.0),y+1.05,z,'coin');
+   // Decorative neon arch over selected platforms.
+   if(i===3||i===7){
+    const arch=new THREE.Mesh(new THREE.TorusGeometry(1.15,.09,8,24),mat(i===3?0x48eaff:0xffd447));
+    arch.position.set(x,y+1.65,z);arch.rotation.x=Math.PI/2;world.add(arch);
+   }
+  }
+  // Start pad and finish gate.
+  box(world,0,.08,8,4.8,.22,4.8,mat(0x1b3152));
+  box(world,0,4.1,-54,5,.45,5,M.green);
+  for(const x of [-2.2,2.2])box(world,x,5.25,-54,.22,2.2,.22,mat(0x48eaff));
+  box(world,0,6.35,-54,4.6,.22,.22,mat(0x48eaff));
+  const goalRing=new THREE.Mesh(new THREE.TorusGeometry(1.1,.12,10,28),mat(0x7dffb2));goalRing.position.set(0,5.6,-54);world.add(goalRing);
+  // Floating scenery gives the course a stronger 3D sky-island look.
+  for(let i=0;i<18;i++){
+   const x=(i%2?1:-1)*(7+Math.random()*3),z=6-Math.random()*64,y=.4+Math.random()*5;
+   const rock=box(world,x,y,z,.7+Math.random(),.5+Math.random(),.7+Math.random(),mat(i%2?0x344c79:0x563d83));rock.rotation.set(Math.random(),Math.random(),Math.random());
+  }
+  makePlayer();player.position.set(0,.19,8);
+ }
+ if(game==='hideseek'){
+  // 3D hide-and-seek arena: grass, paths, buildings, trees and hiding spots.
+  floor(76,82,0x4f9b53,-8);
+  for(let z=-36;z<=28;z+=16)box(world,0,.025,z,5,.06,90,M.road,false);
+  for(let x=-30;x<=30;x+=15)box(world,x,.025,-8,76,.06,4,M.road,false);
+  const buildingColors=[0x8293b1,0xc2a98b,0x7d9b9c,0xb7a1c9,0x9aafc4];
+  for(let x=-30;x<=30;x+=15)for(let z=-30;z<=20;z+=16){if(Math.abs(x)<8&&Math.abs(z)<10)continue;const bx=x+(Math.random()-.5)*2,bz=z+(Math.random()-.5)*2,bw=4+Math.random()*2,bd=4+Math.random()*2;building(bx,bz,bw,3+Math.random()*4,bd,buildingColors[Math.floor(Math.random()*buildingColors.length)]);hideBuildings.push({x:bx,z:bz,w:bw,d:bd});}
+  for(let i=0;i<36;i++){const x=(Math.random()-.5)*66,z=(Math.random()-.5)*70;if(Math.abs(x)<7&&Math.abs(z)<8)continue;tree(x,z,.65+Math.random()*.55)}
+  makePlayer(0x248bff);player.position.set(0,0,5);
+  // Create four visible 3D bot players, then randomly choose the seeker among all five characters.
+  const colors=[0xff4fc8,0xffd447,0x38ef8d,0x9e70ff];
+  for(let i=0;i<4;i++){const bot=new THREE.Group();world.add(bot);const color=mat(colors[i]);box(bot,0,.75,0,.72,.88,.42,color);box(bot,0,1.36,0,.58,.55,.55,M.skin);box(bot,0,1.68,0,.63,.17,.61,M.yellow);box(bot,-.16,1.4,-.285,.09,.09,.035,M.dark,false);box(bot,.16,1.4,-.285,.09,.09,.035,M.dark,false);box(bot,-.21,.18,0,.22,.32,.26,M.dark);box(bot,.21,.18,0,.22,.32,.26,M.dark);let bx=0,bz=0,tries=0;do{bx=(Math.random()-.5)*48;bz=(Math.random()-.5)*52;tries++}while(tries<80&&hideBuildings.some(o=>Math.abs(bx-o.x)<o.w/2+1&&Math.abs(bz-o.z)<o.d/2+1));bot.position.set(bx,0,bz);bot.userData={bot:true,phase:Math.random()*6,caught:false};hidePlayers.push(bot)}
+  hideRole=Math.random()<.2?'seeker':'hider';
+  if(hideRole==='seeker'){player.userData.isSeeker=true;hidePlayers.forEach(b=>b.userData.isSeeker=false)}else{const chosen=hidePlayers[Math.floor(Math.random()*hidePlayers.length)];chosen.userData.isSeeker=true;hidePlayers.forEach(b=>{if(b!==chosen)b.userData.isSeeker=false})}
+  $('#hideRole').textContent='You are the '+hideRole.toUpperCase();$('#hideTimer').textContent='Time: 60';
+  toast.textContent=hideRole==='seeker'?'YOU ARE THE SEEKER! Tag all hiders!':'YOU ARE A HIDER! Hide until time runs out!';
+ }
+ if(game==='spacecrew'){
+  // Rebuilt as a recognizable sci-fi ship interior instead of a flat maze.
+  floor(64,72,0x182438,-5);
+  box(world,0,-.02,0,60,.12,68,mat(0x1c2c43),false);
+  // Neon floor lanes and room markings.
+  for(const x of [-20,-10,0,10,20]) box(world,x,.055,-5,.09,.025,60,mat(0x36c8ef),false);
+  for(const z of [-28,-18,-8,2,12,22]) box(world,0,.055,z,54,.025,.08,mat(0x36c8ef),false);
+  // Outer hull walls, glowing windows, and interior partitions with doorway gaps.
+  for(const x of [-30,30]){
+   box(world,x,2.4,-5,.7,4.8,68,mat(0x647a98));
+   for(let z=-29;z<=20;z+=10){box(world,x+(x<0?.39:-.39),2.7,z,.08,1.25,5.4,mat(0x53d9ff,.32),false)}
+  }
+  for(const z of [-39,29]) box(world,0,2.4,z,60,.7,4.8,mat(0x647a98));
+  // Four room dividers leave clear central doorways so navigation is easy.
+  for(const x of [-16,-4,8,20]){box(world,x,1.5,-14,.45,3,18,mat(0x536985));box(world,x,1.5,11,.45,3,18,mat(0x536985));}
+  for(const z of [-25,0,23]){box(world,-22,1.45,z,16,.25,2.9,mat(0x536985));box(world,22,1.45,z,16,.25,2.9,mat(0x536985));}
+  // Ceiling lamps and room labels create a finished spaceship atmosphere.
+  for(const x of [-24,-12,0,12,24])for(const z of [-30,-10,10,25]){box(world,x,4.65,z,2.5,.12,.42,mat(0x4bdcff),false);sphere(world,x,4.35,z,.18,mat(0x9ff5ff,.18));}
+  // Room signage and door lights make the ship easier to read on a small tablet screen.
+  for(const [label,x,z,color] of [['ENGINE',-24,-28,0xffa64d],['MED BAY',-24,8,0x55f0b2],['NAVIGATION',0,-28,0x51dfff],['REACTOR',24,-28,0xff6d8d],['STORAGE',24,8,0xffd45c],['COMMS',0,20,0xb58cff]]){
+   box(world,x,2.45,z,5.4,.12,.32,mat(color),false);box(world,x-2.55,2.05,z,.12,.75,.12,mat(color),false);box(world,x+2.55,2.05,z,.12,.75,.12,mat(color),false);
+  }
+  // Six larger consoles with animated-looking status lights and clear task markers.
+  const taskColors=[0x35d7ff,0x9d7bff,0x52f0a0,0xffc857,0xff6b9b,0x64a7ff];
+  for(let i=0;i<6;i++){
+   const x=-20+(i%3)*20,z=-23+Math.floor(i/3)*40,c=mat(taskColors[i]);
+   box(world,x,.55,z,3.2,1.05,2.0,mat(0x354b66));box(world,x,.98,z-.82,2.25,.65,.12,c,false);
+   for(let j=0;j<3;j++)sphere(world,x-.65+j*.65,1.42,z-.78,.09,mat(j===0?0x70ffb2:0x50dfff));
+   const marker=new THREE.Mesh(new THREE.TorusGeometry(.75,.07,8,24),mat(taskColors[i]));marker.rotation.x=Math.PI/2;marker.position.set(x,1.55,z);world.add(marker);
+   taskPoints.push({x,z,done:false,marker,console:world.children[world.children.length-1]});
+  }
+  // Small crates and engine cores make the ship feel less empty.
+  for(const [x,z] of [[-25,-32],[25,-32],[-25,25],[25,25]]){box(world,x,.7,z,2.2,1.4,2.2,mat(0x3b4e68));box(world,x,.9,z-1.12,1.2,.18,.08,mat(0x48dfff),false)}
+  for(const x of [-25,25]){cylinder(world,x,1.3,-5,1.6,1.6,1.4,mat(0x283a55),24);cylinder(world,x,1.3,-5,1.1,1.1,1.43,mat(0x3ce0ff,.35),24)}
+  makeSpaceCharacter(0x39baff);player.position.set(0,0,23);
+  const colors=[0xff4d66,0xffd43b,0x55df8b,0xb58cff,0xff8f42];
+  for(let i=0;i<5;i++){const bot=makeSpaceCharacter(colors[i],world);bot.position.set(-20+i*10,0,-18+(i%2)*10);bot.userData={isImpostor:false,phase:Math.random()*5,caught:false,homeX:bot.position.x,homeZ:bot.position.z};crewBots.push(bot)}
+  spaceRole=Math.random()<.22?'impostor':'crew';
+  if(spaceRole==='impostor'){player.userData.isImpostor=true;crewBots.forEach(b=>b.userData.isImpostor=false)}else{const chosen=crewBots[Math.floor(Math.random()*crewBots.length)];chosen.userData.isImpostor=true;crewBots.forEach(b=>b.userData.isImpostor=b===chosen)}
+  spaceTimer=150;spaceOver=false;$('#hideRole').textContent=spaceRole==='impostor'?'🔴 IMPOSTOR':'🟢 CREW • TASKS 0/6';$('#hideTimer').textContent='⏱ 150s';
+  toast.textContent=spaceRole==='impostor'?'🔴 IMPOSTOR: use ACTION near crew to tag them!':'🟢 CREW: find the glowing consoles. ACTION completes nearby tasks.';
+ }
+ if(game==='city'){
+  floor(140,140,0x4f9b53);
+  for(let z=-56;z<=56;z+=28){box(world,0,.015,z,140,.09,9,M.road,false);for(let x=-65;x<=65;x+=8)box(world,x,.07,z,.12,.025,3.2,M.line,false);box(world,0,.09,z-5.2,140,.18,1.4,M.concrete,false);box(world,0,.09,z+5.2,140,.18,1.4,M.concrete,false)}
+  for(let x=-56;x<=56;x+=28){box(world,x,.015,0,9,.09,140,M.road,false);for(let z=-65;z<=65;z+=8)box(world,x,.07,z,3.2,.025,.12,M.line,false);box(world,x-5.2,.09,0,1.4,.18,140,M.concrete,false);box(world,x+5.2,.09,0,1.4,.18,140,M.concrete,false)}
+  const colors=[0x6b7eaa,0xb9c5d3,0x8c9bb5,0x9b8dba,0x637d91,0xc2a98b];
+  for(let gx=-2;gx<=2;gx++)for(let gz=-2;gz<=2;gz++){if(gx===0&&gz===0)continue;const cx=gx*28,cz=gz*28;for(let n=0;n<3;n++){const x=cx+(Math.random()-.5)*10,z=cz+(Math.random()-.5)*10;building(x,z,4+Math.random()*3,5+Math.random()*17,4+Math.random()*3,colors[Math.floor(Math.random()*colors.length)])}}
+  for(let i=0;i<42;i++){const x=(Math.random()-.5)*125,z=(Math.random()-.5)*125;if(Math.abs(x%28)<7||Math.abs(z%28)<7)continue;if(i%4===0)lamp(x,z);else tree(x,z,.65+Math.random()*.5)}
+  // Parked cars add scale and life to the city.
+  for(let i=0;i<5;i++){const c=obstacleCar(-48+Math.random()*96,-48+Math.random()*96,[0xffb72b,0x42a5ff,0xf34a58][i%3]);c.scale.setScalar(.8)}
+  makePlayer();
+  // Friendly city NPC bots with simple wandering behavior.
+  for(let i=0;i<4;i++){const b=new THREE.Group();world.add(b);sphere(b,0,1.35,0,.34,mat([0xffbf9d,0xf2d2b6,0xc68a63][i%3]));box(b,0,.78,0,.62,.75,.35,mat([0x6b8cff,0xf08d65,0x55c7a1][i%3]));box(b,-.38,.8,0,.13,.58,.13,M.skin);box(b,.38,.8,0,.13,.58,.13,M.skin);b.position.set((Math.random()-.5)*35,0,(Math.random()-.5)*35);b.userData={home:b.position.clone(),phase:Math.random()*6,botName:['Milo','Zara','Kai','Luna','Omar','Nova'][i]};cityBots.push(b)}
+ }
+ if(game==='coins'){floor(40,52,0x367c45,-8);for(let i=0;i<45;i++)pickup((Math.random()-.5)*30,.85,(Math.random()-.5)*40);makePlayer()}
+ if(game==='basketball'){
+  floor(28,36,0xb87843,-6);box(world,0,.05,0,27,.12,35,mat(0xb87843),false);
+  for(const x of [-12,12])box(world,x,.12,0,.12,.12,35,M.white,false);for(const z of [-15,15])box(world,0,.12,z,27,.12,.12,M.white,false);
+  box(world,0,3.5,-14,3,2,.18,M.white);box(world,0,2.35,-13.7,1.2,.08,.08,M.red);cylinder(world,0,2.18,-13.55,.55,.55,.08,M.orange,20);ball=sphere(world,0,.55,2,.43,M.orange);makePlayer();
+ }
+ if(game==='zombie'){
+  floor(42,56,0x35483a,-8);
+  for(let i=0;i<18;i++){const x=(Math.random()-.5)*34,z=-5-Math.random()*42;if(i%2===0){box(world,x,.8,z,1.4,1.6,1.4,mat(0x555e64));box(world,x,.4,z-.74,.5,.45,.06,M.glass,false)}else tree(x,z,.8)}
+  for(let i=0;i<4;i++)spawnZombie();zombieSpawnTimer=0;
+  for(let i=0;i<14;i++)pickup((Math.random()-.5)*30,.85,-Math.random()*40,'treat');makePlayer(0x277df2);
+  gun=new THREE.Group();player.add(gun);box(gun,.48,.91,-.48,.2,.22,.68,mat(0x343d53));box(gun,.48,1.02,-.76,.15,.13,.28,mat(0x48eaff));
+ }
+ if(game==='disaster'){
+  floor(76,86,0x5b9860,-8);
+  // Compact city blocks to keep the disaster mode smooth on tablets.
+  for(let z=-32;z<=24;z+=18)box(world,0,.025,z,76,.08,4,M.road,false);
+  for(let x=-30;x<=30;x+=20)box(world,x,.025,-5,4,.08,70,M.road,false);
+  const dc=[0x8293b1,0xb9a58b,0x7b9a9b,0x9a8db8];
+  for(let x=-30;x<=30;x+=20)for(let z=-28;z<=20;z+=18){if(Math.abs(x)<9&&Math.abs(z)<9)continue;building(x,z,4,5+Math.random()*7,4,dc[Math.floor(Math.random()*dc.length)]);}
+  for(let i=0;i<12;i++){const x=(Math.random()-.5)*65,z=(Math.random()-.5)*70;const marker=sphere(world,x,7,z,.45,mat(0xff453d));marker.userData.warning=true;marker.visible=false;disasterDebris.push({mesh:box(world,x,9,z,1.6,1.6,1.6,mat(0x626b79)),x,z,phase:Math.random()*3,active:false,warning:marker});}
+  makePlayer(0x248bff);player.position.set(0,0,8);toast.textContent='🌪️ Disaster incoming! Move away from red warning markers!';
+ }
+ if(game==='prison'){
+  floor(62,72,0x737d88,-8);box(world,0,.1,0,56,.25,64,mat(0x727c88),false);
+  for(let x=-24;x<=24;x+=8){box(world,x,2, -15,.35,4,25,mat(0x3a4655));for(let z=-26;z<-3;z+=3)box(world,x,2,z,.12,4,.12,mat(0xd2e4ed));}
+  for(let x=-25;x<=25;x+=10){building(x,-27,5,6,5,0x647184);building(x,23,5,6,5,0x647184)}
+  for(let i=0;i<5;i++){const k=sphere(world,-20+i*10,.9,-5+(i%2)*8,.42,mat(0xffdf4d,.4));k.userData={type:'prisonkey'};pickups.push(k)}
+  box(world,0,1,-33,8,2,.7,mat(0x38ef8d));makePlayer(0x47c9ff);player.position.set(0,0,26);toast.textContent='Find 5 glowing keycards, then reach the green gate!';
+ }
+ if(game==='blaster'){
+  floor(54,60,0x343d62,-8);for(let x=-22;x<=22;x+=11)for(let z=-22;z<=22;z+=11)box(world,x,1,z,2,2,2,mat([0x2b98b9,0x5e4bc4,0x3a607b][Math.abs(x+z)%3]));
+  makePlayer(0x48eaff);player.position.set(0,0,20);gun=new THREE.Group();player.add(gun);box(gun,.48,.91,-.48,.2,.22,.68,mat(0x343d53));box(gun,.48,1.02,-.76,.15,.13,.28,mat(0x48eaff));
+  for(let i=0;i<7;i++){const b=makeBot([0xff4d66,0xffd43b,0x55df8b,0xb58cff][i%4]);b.position.set((Math.random()-.5)*38,0,-8-Math.random()*25);b.userData={blasterBot:true,phase:Math.random()*6};enemies.push(b)}toast.textContent='Arena ready! Tap FIRE to zap the battle bots.';
+ }
+ if(game==='tower'){
+  floor(60,72,0x243553,-8);
+  for(let i=0;i<13;i++){const x=Math.sin(i*1.25)*4.5,z=24-i*4.5,y=i*.68;box(world,x,y,z,4,.45,4,mat([0x35c8ff,0xff5ac8,0xffd447,0x63ef9d][i%4]));}
+  box(world,0,10,-35,8,.5,8,mat(0x38ef8d));for(let i=0;i<6;i++){const z=20-i*9,y=i*1.35;box(world,0,y+1,z,0.18,2.1,0.18,mat(0xffd447));box(world,1.05,y+1,z,0.18,2.1,0.18,mat(0xffd447));for(let r=0;r<5;r++)box(world,.525,y+.25+r*.38,z,.95,.1,.12,mat(0xd8e6f5));}toast.textContent='🪜 Climb the tower ladders and platforms to reach the green summit!';
+  makePlayer(0xffc04d);player.position.set(0,0,25);
+ }
+ if(game==='garden'){
+  scene.background=new THREE.Color(0x9ee7ff); scene.fog=new THREE.Fog(0x9ee7ff,55,125);
+  floor(100,110,0x65c96a,-8);box(world,0,-.25,0,130,.5,130,mat(0x3e9b55),false);
+  for(let i=0;i<24;i++){const x=(Math.random()-.5)*78,z=(Math.random()-.5)*82;tree(x,z,.65+Math.random()*.65);}for(let z=-36;z<=26;z+=8)box(world,0,.035,z,3.2,.07,3.2,mat(0xe4d4ae),false);for(const x of [-12,12]){box(world,x,.42,5,3.8,.22,1.1,mat(0x8b5a35));for(const dx of [-1.4,1.4])box(world,x+dx,.2,5,.16,.55,.16,mat(0x64452f));}cylinder(world,0,2,-27,3.2,3.2,.22,mat(0xb86b4c),12);for(let i=0;i<6;i++){const a=i*Math.PI/3;box(world,Math.cos(a)*2.4,1.1,-27+Math.sin(a)*2.4,.18,2.2,.18,mat(0xffd46b));}cylinder(world,0,2.25,-27,3.4,3.4,.18,mat(0xff9cc8),12);
+  // Flower beds, stepping stones, a pond and a cheerful garden gate.
+  for(let row=0;row<3;row++)for(let col=0;col<5;col++){const x=-14+col*7,z=-12+row*6;box(world,x,.12,z,4.4,.22,3.4,mat(0x8d5b45),false);for(let k=0;k<4;k++){cylinder(world,x-1.35+k*.9,.48,z,.09,.09,.75,mat(0x278b42),8);sphere(world,x-1.35+k*.9,.91,z,.3,mat([0xff6fb1,0xffd45d,0x9d8aff,0xffffff][(k+col+row)%4]));sphere(world,x-1.35+k*.9,1.05,z,.12,mat(0xffdf65));}}
+  cylinder(world,18,.06,-12,4.5,4.5,.12,mat(0x39c6ec),32);for(let i=0;i<12;i++){const a=i*Math.PI/6;sphere(world,18+Math.cos(a)*3.2,.2,-12+Math.sin(a)*3.2,.18,mat(0xffe58a));}
+  box(world,0,2,-38,12,.35,.35,mat(0xffd46b));for(const x of [-5.5,5.5])box(world,x,1,-38,.35,2,.35,mat(0xff8cb9));
+  for(let i=0;i<36;i++)pickup((Math.random()-.5)*62,.8,(Math.random()-.5)*62,i%4===0?'treat':'coin');for(let i=0;i<10;i++){const x=-25+i*5.5;sphere(world,x,1.8,-2+Math.sin(i)*3,.16,mat(i%2?0xffd85b:0x8fffe0));sphere(world,x+.12,1.8,-2+Math.sin(i)*3,.09,mat(0xffffff));}
+  makePlayer(0x8b5cff);player.position.set(0,0,20);toast.textContent='🌷 Cozy Garden upgraded! Explore the gazebo, stepping-stone path, pond, benches and flower beds. Collect 36 sparkly coins and treats!';
+ }
+ if(game==='football'){
+  // Cool night-match presentation: deep blue sky, stadium turf stripes and floodlights.
+  scene.background=new THREE.Color(0x07152f);scene.fog=new THREE.Fog(0x07152f,95,180);
+  floor(58,76,0x123e38,-8);box(world,0,.02,0,54,.08,70,mat(0x176b42),false);
+  // Alternating mowing stripes across the pitch.
+  for(let i=0;i<7;i++)box(world,0,.067,-27+i*9,53,.012,4.45,mat(i%2?0x1d7a49:0x23834b),false);
+  const white=mat(0xf5fff7);box(world,0,.09,0,.16,.025,66,white,false);box(world,0,.09,-33,54,.025,.16,white,false);box(world,0,.09,33,54,.025,.16,white,false);box(world,-27,.09,0,.16,.025,66,white,false);box(world,27,.09,0,.16,.025,66,white,false);box(world,0,.09,0,54,.025,.16,white,false);
+  // Stadium stands and glowing cyan trim outside the touchlines.
+  for(const side of [-1,1]){
+   box(world,side*31,1.1,0,5,2.2,72,mat(0x152846),false);
+   for(let row=0;row<3;row++)box(world,side*(28.8+row*.85),2.25+row*.45,0,1.0,.22,68,mat([0x24436a,0x1b3659,0x294c73][row]),false);
+   box(world,side*28.1,.22,0,.12,.12,70,mat(0x38e8ff),false);
+   // Floodlight towers with bright lamp clusters.
+   box(world,side*31.5,6,-28,.35,12,.35,mat(0x879bb8),false);box(world,side*31.5,6,28,.35,12,.35,mat(0x879bb8),false);
+   for(const z of [-28,28]){box(world,side*31.5,12,z,2.6,.45,1.2,mat(0xd8f8ff),false);for(let j=0;j<4;j++)sphere(world,side*30.55+j*.62,12.05,z,.19,mat(0xffffff));}
+  }
+  // Electronic scoreboard and a clear red-vs-blue match sign.
+  box(world,0,8,-39,14,3.3,.5,mat(0x0b1830),false);box(world,0,8,-38.7,13.2,2.6,.12,mat(0x143e63),false);
+  box(world,0,8,-38.55,11.8,.13,.08,mat(0xff354f),false);
+  // Team markers float above the players so teams are easy to recognize.
+  box(world,0,5.9,-38.5,7.4,.09,.08,mat(0x248bff),false);
+  // Center circle and penalty box markings.
+  const ring=new THREE.Mesh(new THREE.TorusGeometry(5,.07,6,48),white);ring.rotation.x=Math.PI/2;ring.position.set(0,.12,0);world.add(ring);
+  for(const z of [-27,27]){box(world,0,.1,z,18,.025,.16,white,false);box(world,-9,.1,z/1.0, .16,.025,12,white,false);box(world,9,.1,z,.16,.025,12,white,false);}
+  // Goal at the far end with a visible net grid and cool cyan frame accents.
+  box(world,-5,2,-32.5,.2,4,.2,white,false);box(world,5,2,-32.5,.2,4,.2,white,false);box(world,0,4,-32.5,10,.2,.2,white,false);box(world,0,1.8,-32.5,9.8,3.5,.08,mat(0x9deaff),false);
+  for(let x=-4.5;x<=4.5;x+=1.5)box(world,x,1.8,-32.42,.025,3.35,.025,mat(0xe4fbff),false);
+  for(let y=.45;y<=3.2;y+=.7)box(world,0,y,-32.4,9.7,.025,.025,mat(0xe4fbff),false);
+  box(world,-5.15,2,-32.5,.07,4.2,.07,mat(0x48eaff),false);box(world,5.15,2,-32.5,.07,4.2,.07,mat(0x48eaff),false);box(world,0,4.15,-32.5,10.4,.07,.07,mat(0x48eaff),false);
+  ball=sphere(world,0,.48,3,.48,mat(0xffffff));ball.userData.football=true;for(let i=0;i<5;i++){const a=i*Math.PI*2/5;const patch=sphere(world,Math.cos(a)*.28,.48,3+Math.sin(a)*.28,.12,mat(0x202735));patch.userData.ballPatch=true;ball.add(patch);patch.position.set(Math.cos(a)*.28,0,Math.sin(a)*.28)}
+  makePlayer(0x248bff);player.position.set(0,0,13);
+  // Solo mode means the user is the only character: no teammates and no opponents.
+  teammate=null;blueTeamBots=[];redTeamBots=[];
+  if(teamSize>1){
+   teammate=makeBot(0x248bff);teammate.position.set(-5,0,5);teammate.userData.isTeamMate=true;teammate.userData.roamPhase=0;teammate.userData.goalRunTarget=new THREE.Vector3(0,0,-28);teammate.userData.goalRunGoing=true;
+   // Add enough extra blue players to reach the chosen team size.
+   for(let i=0;i<teamSize-2;i++){const b=makeBot(0x248bff);b.position.set((i%2?1:-1)*(4+i*2),0,8+i*2);b.userData.blueRunPhase=i*1.7;blueTeamBots.push(b);}
+   for(let i=0;i<teamSize;i++){const b=makeBot(0xf02f45);b.position.set((i%2?1:-1)*(5+i*2),0,-8-i*4);b.userData.redChaseOffset=(i%2?2.2:-2.2);b.userData.chaseSpeed=3.1+(i%2)*.3;redTeamBots.push(b);}
+  }
+  $('#teamSizeLabel').textContent=teamSize+'v'+teamSize;$('#footballTeamsSign').classList.toggle('hidden',teamSize===1);$('#passBtn').classList.toggle('hidden',teamSize===1);toast.textContent=teamSize===1?'👤 SOLO MODE! Just you — no teammates, no opponents, and no team sign.':'🔴 RED TEAM vs 🔵 BLUE TEAM! Tap ⚽ to change match size.';
+ }
+ if(game==='buildhouse'){
+  floor(90,100,0x68a85b,-8);box(world,0,.12,-8,26,.25,24,mat(0xc7b58c),false);
+  for(let i=0;i<24;i++)pickup((Math.random()-.5)*70,.75,(Math.random()-.5)*72,'coin');
+  box(world,0,.22,-8,12,.35,12,mat(0x8b969e));box(world,0,1.8,-14,12,3.2,.35,mat(0xe7dfce));box(world,-6,1.8,-8,.35,3.2,12,mat(0xe7dfce));box(world,6,1.8,-8,.35,3.2,12,mat(0xe7dfce));box(world,0,1.8,-2,12,3.2,.35,mat(0xe7dfce));box(world,0,3.8,-8,13,.5,13,mat(0xb74335));
+  box(world,0,1.2,-2,1.5,2.4,.2,mat(0x8c5b37));box(world,-3,2,-14.25,2,1.2,.12,M.glass);box(world,3,2,-14.25,2,1.2,.12,M.glass);
+  box(world,18,.15,-8,5,.3,5,mat(0x397bd1));box(world,18,1,-8,2,1.6,2,mat(0xffd447));
+  for(let i=0;i<8;i++)tree(-30+i*8,24,.7);makePlayer(0x248bff);player.position.set(0,0,16);toast.textContent='🏡 Build a House! Collect coins, then press ACT near the blue shop to buy upgrades.';
+ }
+ if(game==='carsim'){
+  $('#carSelectPanel').classList.add('hidden');
+  floor(130,150,0x448d4e,-8);box(world,0,.03,0,26,.08,130,M.road,false);box(world,0,.04,0,100,.08,20,M.road,false);
+  for(let z=-60;z<=60;z+=8)box(world,0,.09,z,.18,.02,3,M.line,false);for(let x=-45;x<=45;x+=15)for(let z=-50;z<=50;z+=22)tree(x,z,.7);
+  makePlayer(0x000000);player.visible=false;car=buildShowroomCar('Sports Car');car.position.set(0,0,18);car.userData.speed=0;player.position.set(0,0,18);
+  const names=['Sports Car','Supercar','Muscle','Rally','SUV','Pickup','Taxi','Police Car','Fire Truck','Ambulance','Classic','Hypercar'];
+  names.forEach((n,i)=>{const c=buildShowroomCar(n);c.position.set(-28+(i%4)*18,0,-48+Math.floor(i/4)*10);c.scale.setScalar(.8);showroomCars.push(c)});toast.textContent='12 cars on the display! Select any car, then tap DRIVE THIS CAR.';
+ }
+ if(game==='pets'){
+  floor(70,78,0x58b968,-8);box(world,0,-.25,0,100,.5,100,mat(0x3d9955),false);for(let i=0;i<52;i++)pickup((Math.random()-.5)*50,.85,(Math.random()-.5)*58,i%4===0?'treat':'coin');for(let i=0;i<5;i++){const x=-20+i*10;box(world,x,.3,-25,5,.6,4,mat(0x8b5a35));for(let j=0;j<4;j++)sphere(world,x-1.5+j,1,-25,.3,mat([0xff8dc7,0xffd85b,0x8fe8ff,0x9cffb0][(i+j)%4]));}
+  for(let i=0;i<12;i++){const x=-27+i*5;tree(x,-22,.55);sphere(world,x,.9,-22,.24,mat([0xff8dc7,0xffd85b,0x8fe8ff][i%3]));}cylinder(world,13,.05,-5,4,4,.12,mat(0x39c6ec),32);for(let i=0;i<8;i++){const a=i*Math.PI/4;sphere(world,13+Math.cos(a)*3,.45,-5+Math.sin(a)*3,.2,mat(0xffdf68));}
+  // Visible egg station with a glowing shell.
+  sphere(world,0,1,-10,1.15,mat(0xffdf68));sphere(world,0,1,-10,1.18,mat(0xffffff,.45)).scale.set(.92,1.05,.92);for(let i=0;i<6;i++){const a=i*Math.PI/3;sphere(world,Math.cos(a)*.72,1+Math.sin(a)*.55,-9.9,.12,mat([0xff78b7,0x63d9ff,0x9dff92][i%3]));}
+  makePlayer(0x8b5cff);pet=new THREE.Group();world.add(pet);sphere(pet,0,.48,0,.48,mat(0xff9ce8));sphere(pet,-.29,.83,-.02,.24,mat(0xff9ce8));sphere(pet,.29,.83,-.02,.24,mat(0xff9ce8));sphere(pet,-.15,.57,-.4,.065,M.dark);sphere(pet,.15,.57,-.4,.065,M.dark);sphere(pet,0,.38,-.43,.09,mat(0xff5b93));for(const x of [-.3,.3])sphere(pet,x,.13,.02,.15,mat(0xffffff));pet.userData.petKind='Bunny';toast.textContent='🐾 Pet Simulator upgraded! Collect coins and treats, visit the glowing egg, and press ACT to hatch a surprise pet color.';
+ }
+ cameraYaw=0;cameraHeight=5.5;camera.position.set(0,7,13);camera.lookAt(0,0,-2);
+}
+function saveLocal(){try{localStorage.setItem('hmailz_progress',JSON.stringify(progress))}catch{}}
+async function saveProgress(force=false){
+ saveLocal();if(!supabase||!session)return;const now=Date.now();if(!force&&now-lastSave<4000)return;lastSave=now;
+ try{const {error}=await supabase.from('hmailz_progress').upsert({user_id:session.user.id,total_coins:totalCoins,best_scores:progress.scores,updated_at:new Date().toISOString()},{onConflict:'user_id'});if(error)console.warn('Cloud save:',error.message)}catch(e){console.warn(e)}
+}
+function addScore(n=1){score+=n;scoreEl.textContent=score;progress.scores[game]=Math.max(Number(progress.scores[game])||0,score);saveProgress(false)}
+function collect(o){if(!o.visible)return;o.visible=false;addScore(o.userData.type==='treat'?2:1);if(o.userData.type!=='treat'){totalCoins++;progress.coins=totalCoins;coinsEl.textContent=totalCoins}toast.textContent=o.userData.type==='treat'?'Treat collected! +2':'Coin collected! +1';saveProgress(false)}
+function move(dx,dz,dt){
+ if(game==='racing'){driveX=THREE.MathUtils.clamp(driveX+dx*7*dt,-3.35,3.35);if(car)car.position.x=driveX;return}
+ if(game==='carsim'&&player){const speed=24;player.position.x=THREE.MathUtils.clamp(player.position.x+dx*speed*dt,-58,58);player.position.z=THREE.MathUtils.clamp(player.position.z+dz*speed*dt,-68,68);if(car){car.position.copy(player.position);car.position.y=0;car.rotation.y=player.rotation.y;}if(Math.abs(dx)+Math.abs(dz)>.05)player.rotation.y=Math.atan2(dx,-dz);return}
+ if(!player)return;const speed=game==='city'?7:game==='carsim'?30:6;
+ let nx=player.position.x+dx*speed*dt,nz=player.position.z+dz*speed*dt;
+ if(game==='obby'){
+  // Keep the avatar on the current platform; jump to cross gaps.
+  const nearPlatform=(x,z)=>{for(let i=0;i<12;i++){const px=Math.sin(i*1.35)*4.2,pz=8-i*5.2;if(Math.abs(x-px)<1.95&&Math.abs(z-pz)<1.95)return true}return Math.abs(x)<2.8&&z<-51&&z>-57};
+  if(nearPlatform(nx,player.position.z)||player.position.y>0.3)player.position.x=THREE.MathUtils.clamp(nx,-9,9);
+  if(nearPlatform(player.position.x,nz)||player.position.y>0.3)player.position.z=THREE.MathUtils.clamp(nz,-57,12);
+ }else{const bound=['spacecrew','prison','blaster','island','garden','football','stealbrainrot','buildhouse'].includes(game)?(['island','garden'].includes(game)?46:game==='football'?28:game==='stealbrainrot'?32:game==='prison'?28:game==='blaster'?25:27):19;player.position.x=THREE.MathUtils.clamp(nx,-bound,bound);player.position.z=THREE.MathUtils.clamp(nz,game==='spacecrew'?-34:['island','garden'].includes(game)?-50:game==='football'?-34:game==='tower'?-38:game==='prison'?-33:game==='stealbrainrot'?-32:game==='blaster'?-28:-57,game==='spacecrew'?27:['island','garden'].includes(game)?50:game==='football'?32:game==='tower'?28:game==='prison'?30:game==='stealbrainrot'?30:game==='blaster'?25:23)}
+ if(Math.abs(dx)+Math.abs(dz)>.05)player.rotation.y=Math.atan2(dx,-dz)
+}
+function jump(){if(game==='racing'||game==='carsim'||!player)return;if(onGround){vy=game==='obby'?8.5:6.5;onGround=false}}
+function shoot(){
+ if(game==='city'&&player){const target=cityBots.filter(b=>b.visible).sort((a,b)=>a.position.distanceTo(player.position)-b.position.distanceTo(player.position))[0];if(target&&target.position.distanceTo(player.position)<16){target.visible=false;addScore(1);toast.textContent='TAG! City bot tagged! +1';}else toast.textContent='Aim closer to a city bot to tag it.';return}
+ if(game==='spacecrew'&&player){if(spaceOver){toast.textContent='Round over — choose Space Crew 3D again to restart.';return}if(spaceRole==='impostor'){const target=crewBots.filter(b=>!b.userData.isImpostor&&!b.userData.caught).sort((a,b)=>a.position.distanceTo(player.position)-b.position.distanceTo(player.position))[0];if(target&&target.position.distanceTo(player.position)<3.2){target.userData.caught=true;target.visible=false;addScore(5);toast.textContent='Crewmate tagged! +5';if(crewBots.filter(b=>!b.userData.isImpostor&&!b.userData.caught).length===0){spaceOver=true;toast.textContent='🔴 Impostor wins! All crew tagged.'}}else toast.textContent='Get closer to a crewmate to tag them.'}else{const task=taskPoints.find(t=>!t.done&&Math.hypot(t.x-player.position.x,t.z-player.position.z)<3.2);if(task){task.done=true;if(task.marker){task.marker.material=mat(0x55ff9b);task.marker.scale.setScalar(.65)}addScore(3);const done=taskPoints.filter(t=>t.done).length;$('#hideRole').textContent='🟢 CREW • TASKS '+done+'/6';toast.textContent='Task complete! '+done+'/6 • +3';if(taskPoints.every(t=>t.done)){spaceOver=true;toast.textContent='🏆 All tasks complete! Crew wins!'}}else toast.textContent='Go to a glowing console to complete a task.'}return}
+ if(!['zombie','blaster'].includes(game)||!player)return;const target=enemies.filter(e=>e.visible).sort((a,b)=>a.position.distanceTo(player.position)-b.position.distanceTo(player.position))[0];
+ if(!target){toast.textContent='No zombies left!';return}
+ const origin=new THREE.Vector3(player.position.x+.45,player.position.y+1,player.position.z-.8),direction=target.position.clone().add(new THREE.Vector3(0,.8,0)).sub(origin).normalize();
+ const b=sphere(world,origin.x,origin.y,origin.z,.12,mat(0x6ffaff,.3));b.userData={direction,target,life:0};bullets.push(b);toast.textContent=game==='blaster'?'ZAP! Blaster fired!':'PEW! Blaster fired!'
+}
+function act(){
+ if(game==='zombie'||game==='blaster'){shoot();return}
+ if(game==='football'&&ball&&player){if(ball.position.distanceTo(player.position)>3.5){toast.textContent='Move closer to the football first!';return}ball.userData.kick={start:ball.position.clone(),t:0,speed:22,power:false};toast.textContent='⚽ Shot! Aim for the goal!';return}
+ if(game==='basketball'&&ball&&player){const start=ball.position.clone();const hoop=new THREE.Vector3(0,2.3,-13.55);const distance=start.distanceTo(hoop);ball.userData.shot={start,end:hoop,t:0,duration:THREE.MathUtils.clamp(distance/10,0.65,1.35),scored:false,valid:distance<19&&player.position.z<8};toast.textContent='Shot! Aim for the hoop!';return}
+ if(game==='pets'&&player){if(player.position.distanceTo(new THREE.Vector3(0,0,-10))<4){const colors=[0xff9ce8,0x8fe8ff,0xffd45b,0x9cffb0];const color=colors[Math.floor(Math.random()*colors.length)];pet.traverse(o=>{if(o.isMesh&&o.material&&o.material.color&&o.material.color.getHex()===0xff9ce8)o.material=mat(color)});addScore(5);toast.textContent='🥚 Mystery egg hatched! New pet color unlocked! +5';}else toast.textContent='🐾 Your pet follows you! Collect coins and treats, or visit the glowing egg to hatch a new pet.';}if(game==='buildhouse'&&player){if(player.position.distanceTo(new THREE.Vector3(18,0,-8))<7){if(totalCoins>=10){totalCoins-=10;coinsEl.textContent=totalCoins;addScore(5);const deco=box(world,Math.random()*6-3,.8,-8+Math.random()*5,1.2,1.2,1.2,mat([0xffd447,0x48eaff,0xff5ac8,0x38ef8d][Math.floor(Math.random()*4)]));toast.textContent='Bought a house decoration for 10 coins! +5 score';saveProgress(true)}else toast.textContent='You need 10 coins to buy a decoration! Collect coins first.'}else toast.textContent='Walk to the blue shop beside your house and press ACT to buy decorations.'}
+}
+function passFootball(){
+ if(game!=='football'||!player||!teammate||!ball)return;
+ const old=player.position.clone(),target=teammate.position.clone();
+ // Pass the ball toward the teammate, then switch the controlled avatar to their position.
+ ball.userData.pass={start:ball.position.clone(),end:target.clone().add(new THREE.Vector3(0,.48,0)),t:0};
+ player.position.copy(target);teammate.position.copy(old);teammate.position.x=THREE.MathUtils.clamp(teammate.position.x,-25,25);
+ toast.textContent='🔵 PASS! You are now controlling your teammate. Move and play!';
+}
+function powerFootball(){
+ if(game!=='football'||!ball||!player)return;
+ if(ball.position.distanceTo(player.position)>3.5){toast.textContent='Move close to the ball before POWER SHOT!';return}
+ ball.userData.kick={start:ball.position.clone(),end:new THREE.Vector3(0,.48,-32),t:0,duration:.58,power:true};toast.textContent='💥 POWER SHOT! Fast with a smooth, controlled arc toward the goal!';
+}
+function resetGame(){stickState.x=stickState.y=0;$('#stick').style.transform='translate(0px,0px)';resetWorld()}
+function launchHomeGame(gameName){document.body.classList.remove('homeMode');document.body.classList.add('homePlaying');$('#homeScreen').classList.remove('visible');document.querySelectorAll('.game').forEach(x=>x.classList.toggle('active',x.dataset.game===gameName));game=gameName;resetGame();window.scrollTo({top:0,behavior:'smooth'});}
+document.querySelectorAll('.game').forEach(b=>b.addEventListener('click',()=>launchHomeGame(b.dataset.game)));
+document.querySelectorAll('[data-home-game]').forEach(b=>b.addEventListener('click',()=>launchHomeGame(b.dataset.homeGame)));
+$('#backHomeBtn').addEventListener('click',()=>{closeAvatar();document.body.classList.remove('homePlaying');document.body.classList.add('homeMode');$('#homeScreen').classList.add('visible');window.scrollTo({top:0,behavior:'smooth'});});
+$('#homeAllGames').addEventListener('click',()=>{document.body.classList.remove('homeMode','homePlaying');$('#homeScreen').classList.remove('visible');window.scrollTo({top:0,behavior:'smooth'});});
+$('#homeSearch').addEventListener('input',e=>{const q=e.target.value.trim().toLowerCase();document.querySelectorAll('[data-home-game]').forEach(card=>{card.style.display=card.textContent.toLowerCase().includes(q)?'':'none';});});
+function setHomeTab(tab){closeAvatar();document.body.classList.add('homeMode');document.body.classList.remove('homePlaying');$('#homeScreen').classList.add('visible');document.querySelectorAll('.homeNav button').forEach(b=>b.classList.toggle('selected',b.id===tab));if(tab==='homeDiscover'){document.querySelector('#homeRecommended').scrollIntoView({behavior:'smooth',block:'start'});}else{window.scrollTo({top:0,behavior:'smooth'});}}
+$('#homeHomeBtn').addEventListener('click',()=>setHomeTab('homeHomeBtn'));
+$('#homeDiscover').addEventListener('click',()=>setHomeTab('homeDiscover'));
+const avatarDefaults={name:'HMAILZ Player',hair:'spiky',hairColor:'#171717',skin:'#f0b28b',shirt:'#17191e',pants:'#252a34'};
+let avatarState={...avatarDefaults};
+function paintAvatar(){const person=$('#blockPerson');person.style.setProperty('--skin',avatarState.skin);person.style.setProperty('--shirt',avatarState.shirt);person.style.setProperty('--pants',avatarState.pants);person.style.setProperty('--hair',avatarState.hairColor);$('#avatarPreviewName').textContent=avatarState.name||'HMAILZ Player';$('#homePlayerName').textContent=avatarState.name||'Guest';$('#avatarNameInput').value=avatarState.name;document.querySelectorAll('[data-hair]').forEach(b=>b.classList.toggle('selected',b.dataset.hair===avatarState.hair));['hairColors','skinColors','shirtColors','pantsColors'].forEach((id,i)=>{const key=['hairColor','skin','shirt','pants'][i];document.querySelectorAll('#'+id+' [data-color]').forEach(b=>b.classList.toggle('selected',b.dataset.color===avatarState[key]));});const hair=person.querySelector('.blockHair');hair.style.borderRadius=avatarState.hair==='cap'?'18px 18px 3px 3px':avatarState.hair==='smooth'?'24px 24px 4px 4px':'16px 16px 5px 5px';hair.style.height=avatarState.hair==='cap'?'25px':avatarState.hair==='smooth'?'27px':'31px';hair.style.boxShadow=avatarState.hair==='cap'?'inset 0 -5px #ffffff30':'none';}
+function openAvatar(){document.body.classList.add('avatarMode');$('#avatarEditor').classList.add('active');document.querySelectorAll('.homeNav button').forEach(b=>b.classList.toggle('selected',b.id==='homeAvatarBtn'));try{const saved=localStorage.getItem('hmailz_avatar');if(saved)avatarState={...avatarDefaults,...JSON.parse(saved)}}catch(e){}paintAvatar();window.scrollTo({top:0,behavior:'smooth'});}
+function closeAvatar(){document.body.classList.remove('avatarMode');$('#avatarEditor').classList.remove('active');document.querySelectorAll('.homeNav button').forEach(b=>b.classList.toggle('selected',b.textContent.trim()==='Home'));window.scrollTo({top:0,behavior:'smooth'});}
+$('#homeAvatarBtn').addEventListener('click',openAvatar);$('#avatarBack').addEventListener('click',closeAvatar);$('#avatarNameInput').addEventListener('input',e=>{avatarState.name=e.target.value.slice(0,20);paintAvatar()});document.querySelectorAll('[data-hair]').forEach(b=>b.addEventListener('click',()=>{avatarState.hair=b.dataset.hair;paintAvatar()}));[['hairColors','hairColor'],['skinColors','skin'],['shirtColors','shirt'],['pantsColors','pants']].forEach(([id,key])=>document.querySelectorAll('#'+id+' [data-color]').forEach(b=>b.addEventListener('click',()=>{avatarState[key]=b.dataset.color;paintAvatar()})));$('#saveAvatar').addEventListener('click',()=>{try{localStorage.setItem('hmailz_avatar',JSON.stringify(avatarState));$('#avatarNotice').textContent='✅ Avatar saved on this device!'}catch(e){$('#avatarNotice').textContent='Could not save on this browser.'}});$('#resetAvatar').addEventListener('click',()=>{avatarState={...avatarDefaults};paintAvatar();$('#avatarNotice').textContent='Avatar reset. Tap Save Avatar to keep it.'});
+
+function drawCityMap(){
+ const c=$('#cityMap');if(!c||!player)return;const ctx=c.getContext('2d'),w=c.width,h=c.height;ctx.clearRect(0,0,w,h);ctx.fillStyle='#15263d';ctx.fillRect(0,0,w,h);
+ ctx.strokeStyle='#657c99';ctx.lineWidth=5;for(let i=0;i<5;i++){const z=12+i*21;ctx.beginPath();ctx.moveTo(0,z%h);ctx.lineTo(w,z%h);ctx.stroke();const x=(i*31)%w;ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,h);ctx.stroke()}
+ ctx.fillStyle='#a8b9cc';for(let x=8;x<w;x+=19)for(let y=7;y<h;y+=19)ctx.fillRect(x,y,7,7);
+ const px=THREE.MathUtils.clamp((player.position.x+70)/140*w,3,w-3),py=THREE.MathUtils.clamp((player.position.z+70)/140*h,3,h-3);ctx.fillStyle='#ffe15b';ctx.beginPath();ctx.arc(px,py,4,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#fff';ctx.stroke();
+}
+const driveCarNames=['Sports Car','Supercar','Muscle','Rally','SUV','Pickup','Taxi','Police Car','Fire Truck','Ambulance','Classic','Hypercar'];let selectedDriveCar='Sports Car';$('#carGrid').innerHTML=driveCarNames.map((n,i)=>`<button data-drive-car="${n}" class="${i===0?'selected':''}">${['🏎️','🚀','💪','🏁','🚙','🛻','🚕','🚓','🚒','🚑','🚗','💜'][i]} ${n}</button>`).join('');document.querySelectorAll('[data-drive-car]').forEach(b=>b.addEventListener('click',()=>{selectedDriveCar=b.dataset.driveCar;document.querySelectorAll('[data-drive-car]').forEach(x=>x.classList.toggle('selected',x===b));$('#carSelectStatus').textContent=selectedDriveCar+' selected — tap DRIVE THIS CAR.';}));$('#spawnSelectedCar').onclick=()=>{if(game!=='carsim'||!world||!player)return;if(car)world.remove(car);showroomCars.forEach(g=>{if(g!==car)world.remove(g)});showroomCars=[];car=buildShowroomCar(selectedDriveCar);car.position.set(player.position.x,0,player.position.z+2.2);car.rotation.y=player.rotation.y;player.position.set(car.position.x,0,car.position.z);car.visible=true;car.userData.speed=0;$('#carSelectStatus').textContent='🚘 '+selectedDriveCar+' spawned beside you. This exact vehicle is selected; choose another any time.';$('#carSelectPanel').classList.add('hidden');toast.textContent='🚗 '+selectedDriveCar+' is ready! Tap the 🚘 car button to open the car menu again.';};
+$('#mapBtn').addEventListener('click',()=>{const p=$('#cityMapPanel');p.classList.toggle('hidden');if(!p.classList.contains('hidden'))drawCityMap()});
+$('#footballMenuBtn').addEventListener('click',()=>$('#footballMenuPanel').classList.toggle('hidden'));document.querySelectorAll('.football-size').forEach(btn=>btn.addEventListener('click',()=>{teamSize=Number(btn.dataset.size);$('#footballMenuPanel').classList.add('hidden');if(game==='football')resetGame();}));
+
+// Tapping the HMAILZ logo opens City Explorer and reveals the Car Corner.
+$('.logo').setAttribute('role','button');$('.logo').setAttribute('tabindex','0');$('.logo').setAttribute('aria-label','Open City Explorer and show cars');
+function buildShowroomCar(name){
+ const colors={'Sports Car':0xff3156,'Sedan':0x42a5ff,'SUV':0x37b86b,'Taxi':0xffd12e,'Police Car':0xf3f7ff,'Police':0xf3f7ff};
+ const g=new THREE.Group();world.add(g);const body=mat(colors[name]||0xff3156);const length=name==='SUV'?3.1:2.7;const width=name==='SUV'?1.95:1.75;
+ box(g,0,.48,0,width,.48,length,body);box(g,0,.86,-.22,width*.7,.48,length*.45,M.glass);
+ box(g,0,.77,length*.35,width*.78,.16,.25,mat(0xffe5a1));box(g,0,.72,-length*.46,width*.8,.15,.18,mat(0xff263c));
+ if(name==='Taxi')box(g,0,1.18,0,.7,.12,.25,mat(0xffe14a));
+ if(name==='Police Car'||name==='Police'){box(g,0,1.18,0,.65,.12,.22,mat(0x273cff));box(g,-.22,1.19,0,.18,.13,.22,mat(0xff3333));box(g,.22,1.19,0,.18,.13,.22,mat(0x2f7bff));}
+ if(name==='Ambulance'){box(g,0,1.12,0,.78,.16,.42,mat(0xffffff));box(g,0,1.13,.23,.14,.035,.025,mat(0xe32636));box(g,0,1.13,.23,.035,.035,.16,mat(0xe32636));box(g,0,1.2,-.05,.75,.07,.22,mat(0xff3b45));box(g,-.24,1.25,-.05,.18,.08,.2,mat(0xff3333));box(g,.24,1.25,-.05,.18,.08,.2,mat(0x2f7bff));box(g,0,.55,-length*.48,.5,.08,.08,mat(0xff3b45));}
+ if(name==='Fire Truck'){box(g,0,.92,-.35,width*.82,.28,.95,mat(0xffd34f));box(g,0,1.16,-.35,.75,.1,.14,mat(0xffffff));}
+ for(const sx of [-width*.52,width*.52])for(const sz of [-length*.31,length*.31]){const w=cylinder(g,sx,.27,sz,.25,.25,.16,M.dark,16);w.rotation.z=Math.PI/2;const hub=cylinder(g,sx,.27,sz,.12,.12,.17,mat(0x9da9b8),12);hub.rotation.z=Math.PI/2;}
+ return g;
+}
+function showAllCars(){
+ showroomCars.forEach(g=>world&&world.remove(g));showroomCars=[];
+ if(!world||!player)return;
+ const names=['Sports Car','Sedan','SUV','Taxi','Police Car'];
+ const spots=[[-3.4,-5.5],[0,-5.5],[3.4,-5.5],[-1.7,-9.1],[1.7,-9.1]];
+ names.forEach((name,i)=>{const g=buildShowroomCar(name);g.position.set(player.position.x+spots[i][0],0,player.position.z+spots[i][1]);g.rotation.y=0;showroomCars.push(g);});
+ $('#carCornerStatus').textContent='All 5 cars are on display! Choose one and press SPAWN CAR.';
+}
+function openCarCorner(){game='city';document.querySelectorAll('.game').forEach(x=>x.classList.toggle('active',x.dataset.game==='city'));resetGame();$('#carCorner').classList.remove('hidden');showAllCars();toast.textContent='🚗 All five cars are on display! Choose one to spawn and drive.';}
+function handleLogoMenu(){if(game==='carsim'){const panel=$('#carSelectPanel');panel.classList.toggle('hidden');if(!panel.classList.contains('hidden'))toast.textContent='🚘 Car menu opened! Choose a vehicle, then tap DRIVE THIS CAR.';else toast.textContent='Car menu closed. Tap the HMAILZ logo whenever you want to choose another car.';}else openCarCorner();}
+$('.logo').addEventListener('click',openCarCorner);$('.logo').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openCarCorner()}});$('#carMenuEmojiBtn').addEventListener('click',()=>{if(game!=='carsim')return;const panel=$('#carSelectPanel');panel.classList.toggle('hidden');toast.textContent=panel.classList.contains('hidden')?'Car menu closed. Tap 🚘 to choose another car.':'🚘 Car menu opened! Choose a vehicle, then tap DRIVE THIS CAR.';});
+$('#settingsBtn').onclick=()=>$('#settingsPanel').classList.toggle('hidden');$('#closeSettings').onclick=()=>$('#settingsPanel').classList.add('hidden');$('#fpsToggle').onclick=()=>{showFps=!showFps;$('#fpsBadge').classList.toggle('hidden',!showFps);$('#fpsToggle').textContent=showFps?'Hide FPS':'Show FPS'};$('#restartCharacter').onclick=()=>{if(player){player.position.set(0,game==='obby'?.19:0,game==='obby'?8:game==='spacecrew'?23:5);vy=0;onGround=true;toast.textContent='Character restarted!'}else resetGame();$('#settingsPanel').classList.add('hidden')};$('#leaveGame').onclick=()=>{game='obby';document.querySelectorAll('.game').forEach(x=>x.classList.toggle('active',x.dataset.game==='obby'));resetGame();$('#settingsPanel').classList.add('hidden');document.body.classList.add('homeMode');$('#homeScreen').classList.add('visible');};$('#restartBtn').onclick=resetGame;$('#jumpBtn').onpointerdown=e=>{e.preventDefault();jump()};$('#jumpDesktop').onclick=jump;$('#fireBtn').onpointerdown=e=>{e.preventDefault();shoot()};$('#actionBtn').onpointerdown=e=>{e.preventDefault();act()};$('#passBtn').onpointerdown=e=>{e.preventDefault();passFootball()};$('#powerShotBtn').onpointerdown=e=>{e.preventDefault();powerFootball()};
+function bindHold(id,name){const b=$(id);const down=e=>{e.preventDefault();held[name]=true};const up=e=>{e.preventDefault();held[name]=false};b.addEventListener('pointerdown',down);['pointerup','pointercancel','pointerleave','lostpointercapture'].forEach(ev=>b.addEventListener(ev,up));}
+bindHold('#leftBtn','left');bindHold('#rightBtn','right');bindHold('#forwardBtn','forward');bindHold('#backBtn','back');
+
+$('#spawnCarBtn').onclick=()=>{if(game!=='hideseek')return;resetGame()};
+// Brookhaven-style car corner belongs to City Explorer in this original project.
+document.querySelectorAll('[data-city-car]').forEach(btn=>btn.addEventListener('click',()=>{selectedCityCar=btn.dataset.cityCar;document.querySelectorAll('[data-city-car]').forEach(b=>b.classList.toggle('selected',b===btn));$('#carCornerStatus').textContent=selectedCityCar+' selected.';}));
+$('#spawnCityCar').onclick=()=>{if(game!=='city'||!world||!player)return;if(cityRideCar){world.remove(cityRideCar);const i=spawnedCars.indexOf(cityRideCar);if(i>=0)spawnedCars.splice(i,1);}showroomCars.forEach(g=>world.remove(g));showroomCars=[];cityRideCar=buildShowroomCar(selectedCityCar);cityRideCar.position.set(player.position.x,0,player.position.z-2.2);cityRideCar.rotation.y=player.rotation.y;spawnedCars.push(cityRideCar);$('#carCornerStatus').textContent=selectedCityCar+' spawned! Use the joystick or arrow buttons to drive.';toast.textContent='🚗 '+selectedCityCar+' spawned! Drive around the city!';};
+window.addEventListener('keydown',e=>{keys[e.key.toLowerCase()]=true;if(e.code==='Space'){e.preventDefault();jump()}if(e.key.toLowerCase()==='f')shoot()});
+window.addEventListener('keyup',e=>keys[e.key.toLowerCase()]=false);
+
+// Roblox-style camera orbit: drag anywhere on the 3D view except HUD controls.
+stage.addEventListener('pointerdown',e=>{if(e.target.closest('.hud,button,input,#toast'))return;cameraDrag={id:e.pointerId,x:e.clientX,y:e.clientY};});
+window.addEventListener('pointermove',e=>{if(!cameraDrag||cameraDrag.id!==e.pointerId)return;const dx=e.clientX-cameraDrag.x,dy=e.clientY-cameraDrag.y;cameraDrag.x=e.clientX;cameraDrag.y=e.clientY;cameraYaw-=dx*.008;cameraHeight=Math.max(2.2,Math.min(11,cameraHeight+dy*.035));});
+['pointerup','pointercancel'].forEach(ev=>window.addEventListener(ev,e=>{if(cameraDrag&&cameraDrag.id===e.pointerId)cameraDrag=null;}));
+// Thumbstick follows the user's finger and continuously supplies movement.
+const joy=$('#joystick'),stick=$('#stick');
+function updateStick(e){const dx=e.clientX-stickState.cx,dy=e.clientY-stickState.cy,len=Math.hypot(dx,dy),scale=len>stickState.r?stickState.r/len:1;stickState.x=dx*scale/stickState.r;stickState.y=dy*scale/stickState.r;stick.style.transform=`translate(${dx*scale}px,${dy*scale}px)`}
+joy.addEventListener('pointerdown',e=>{e.preventDefault();stickState.active=true;stickState.id=e.pointerId;const r=joy.getBoundingClientRect();stickState.cx=r.left+r.width/2;stickState.cy=r.top+r.height/2;stickState.r=r.width*.36;joy.setPointerCapture(e.pointerId);updateStick(e)});
+joy.addEventListener('pointermove',e=>{if(stickState.active&&e.pointerId===stickState.id){e.preventDefault();updateStick(e)}});
+function releaseStick(e){if(stickState.active&&(e.pointerId===undefined||e.pointerId===stickState.id)){stickState.active=false;stickState.id=null;stickState.x=stickState.y=0;stick.style.transform='translate(0px,0px)'}}
+joy.addEventListener('pointerup',releaseStick);joy.addEventListener('pointercancel',releaseStick);joy.addEventListener('lostpointercapture',releaseStick);
+
+$('#toggleAuth').onclick=()=>$('#authPanel').classList.toggle('hidden');
+$('#chatToggle').onclick=()=>$('#cityChat').classList.toggle('hidden');
+$('#chatSend').onclick=()=>{const input=$('#chatInput'),msg=input.value.trim();if(!msg)return;const log=$('#chatLog');const line=document.createElement('div');line.textContent='You: '+msg;log.appendChild(line);input.value='';const replies=['Bot: Nice! Explore the park over there.','Bot: Welcome to HMAILZ City!','Bot: The roads are busy today.','Bot: Try finding the cars near the buildings.'];setTimeout(()=>{const reply=document.createElement('div');reply.textContent=replies[Math.floor(Math.random()*replies.length)];log.appendChild(reply);log.scrollTop=log.scrollHeight},350);log.scrollTop=log.scrollHeight};
+$('#chatInput').addEventListener('keydown',e=>{if(e.key==='Enter')$('#chatSend').click()});
+function authMsg(t){$('#authMessage').textContent=t}
+function setUserUI(){
+ $('#welcome').textContent=session?'Player: '+(playerEmail||session.user.email||'Signed in'):'Player: Guest';
+ $('#accountStatus').textContent=session?'Cloud account connected — progress syncs to your account.':(supabase?'Sign in to sync progress across devices.':'Guest mode — local device save. Add Supabase settings to enable real accounts.');
+ $('#signOut').classList.toggle('hidden',!session);
+}
+async function loadCloud(){
+ if(!supabase||!session)return;
+ try{
+  const {data,error}=await supabase.from('hmailz_progress').select('total_coins,best_scores').eq('user_id',session.user.id).maybeSingle();
+  if(error)throw error;
+  if(data){totalCoins=Number(data.total_coins)||0;progress.coins=totalCoins;progress.scores=data.best_scores||{};coinsEl.textContent=totalCoins;saveLocal()}
+ }catch(e){authMsg('Signed in, but could not load saved progress. Check the Supabase SQL setup and policies.');console.warn(e)}
+}
+async function authStart(mode){
+ if(!supabase){authMsg('Accounts are not configured yet. Add your Supabase URL and anon/public key inside the HTML, then publish again.');return}
+ const email=$('#email').value.trim(),password=$('#password').value;playerEmail=$('#username').value.trim()||email.split('@')[0];
+ if(!email||!password){authMsg('Enter your email and password.');return}
+ authMsg('Please wait…');
+ try{
+  let result;
+  if(mode==='signup')result=await supabase.auth.signUp({email,password});
+  else result=await supabase.auth.signInWithPassword({email,password});
+  if(result.error)throw result.error;
+  if(mode==='signup'&&!result.data.session){authMsg('Account created. Check your email to confirm, then sign in.');return}
+  session=result.data.session;playerEmail=email;await loadCloud();setUserUI();authMsg('Success! Your account is connected.');await saveProgress(true)
+ }catch(e){authMsg(e.message||'Could not sign in. Check your details and Supabase settings.')}
+}
+$('#signUp').onclick=()=>authStart('signup');$('#signIn').onclick=()=>authStart('signin');
+try{const a=localStorage.getItem('hmailz_avatar');if(a){avatarState={...avatarDefaults,...JSON.parse(a)};paintAvatar()}}catch(e){}
+$('#gateGuest').onclick=()=>{localStorage.setItem('hmailz_play_choice','guest');$('#accountGate').classList.add('hidden');document.body.classList.add('homeMode');$('#homeScreen').classList.add('visible');$('#homePlayerName').textContent='Guest';};
+$('#gateGuest2').onclick=()=>{localStorage.setItem('hmailz_play_choice','guest');$('#accountGate').classList.add('hidden');document.body.classList.add('homeMode');$('#homeScreen').classList.add('visible');$('#homePlayerName').textContent='Guest';};
+$('#gateAccount').onclick=()=>$('#gateAuth').classList.toggle('hidden');
+$('#gateCreate').onclick=async()=>{await authStart('signup');if(session)$('#accountGate').classList.add('hidden');$('#gateMessage').textContent=$('#authMessage').textContent};
+$('#gateSignIn').onclick=async()=>{await authStart('signin');if(session)$('#accountGate').classList.add('hidden');$('#gateMessage').textContent=$('#authMessage').textContent};
+
+$('#signOut').onclick=async()=>{if(supabase)await supabase.auth.signOut();session=null;playerEmail='';setUserUI();authMsg('Signed out.')}
+if(supabase){supabase.auth.getSession().then(async({data})=>{session=data.session;playerEmail=session?.user?.email||'';if(session)await loadCloud();setUserUI()});supabase.auth.onAuthStateChange((_event,s)=>{session=s;playerEmail=s?.user?.email||'';setUserUI()})}
+else setUserUI();
+if(!session)$('#accountGate').classList.remove('hidden');
+
+function resize(){const w=stage.clientWidth,h=stage.clientHeight;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix()}
+new ResizeObserver(resize).observe(stage);resize();resetGame();
+const clock=new THREE.Clock();
+function animate(){
+ requestAnimationFrame(animate);const dt=Math.min(.04,clock.getDelta());time+=dt;fpsFrames++;fpsElapsed+=dt;if(fpsElapsed>=.5){currentFps=Math.round(fpsFrames/fpsElapsed);fpsFrames=0;fpsElapsed=0;$('#fpsValue').textContent=currentFps;$('#fpsBadge').textContent='FPS: '+currentFps;}
+ const dx=(stickState.x||0)+(keys.arrowright||keys.d||held.right?1:0)-(keys.arrowleft||keys.a||held.left?1:0);
+ const dz=(stickState.y||0)+(keys.arrowdown||keys.s||held.back?1:0)-(keys.arrowup||keys.w||held.forward?1:0);
+ if(Math.abs(dx)+Math.abs(dz)>.01)move(THREE.MathUtils.clamp(dx,-1,1),THREE.MathUtils.clamp(dz,-1,1),dt);
+ if(player){
+  if(!onGround){
+   const previousY=player.position.y;
+   vy-=18*dt;player.position.y+=vy*dt;
+   let landed=false;
+   if((game==='obby'||game==='tower')&&vy<=0){
+    // Real platform landing: catch the player when falling across a platform top.
+    for(let i=0;i<(game==='obby'?12:13);i++){
+     const px=game==='obby'?Math.sin(i*1.35)*4.2:Math.sin(i*1.25)*4.5,pz=game==='obby'?8-i*5.2:24-i*4.5,top=game==='obby'?i*.32+.225:i*.68+.225;
+     if(Math.abs(player.position.x-px)<1.92&&Math.abs(player.position.z-pz)<1.92&&previousY>=top-.35&&player.position.y<=top+.04){
+      player.position.y=top;vy=0;onGround=true;landed=true;break;
+     }
+    }
+    if(game==='tower'&&vy<=0&&!landed){for(let i=0;i<13;i++){const px=Math.sin(i*1.25)*4.5,pz=24-i*4.5,top=i*.68+.225;if(Math.abs(player.position.x-px)<2.2&&Math.abs(player.position.z-pz)<2.2&&previousY>=top-.35&&player.position.y<=top+.04){player.position.y=top;vy=0;onGround=true;landed=true;break}}}
+   if(!landed&&Math.abs(player.position.x)<2.45&&player.position.z>5.5&&player.position.z<10.5&&previousY>=.19&&player.position.y<=.19){player.position.y=.19;vy=0;onGround=true;landed=true;}
+   }
+   if(!landed&&player.position.y<=0){player.position.y=0;vy=0;onGround=true}
+  }
+  if(game==='obby'&&player.position.y< -1.5){player.position.set(0,.19,8);vy=0;onGround=true;toast.textContent='Oops! Try the jump again.'}
+  if(game==='obby'&&player&&Math.hypot(player.position.x-2.5,player.position.z+20)<1.5){player.position.set(0,.19,8);vy=0;onGround=true;toast.textContent='🕳️ Black hole! You got reset!'}
+  if(game==='obby'&&player.position.z<-51&&player.position.y>1){addScore(10);toast.textContent='Obby goal reached! +10';player.position.set(0,.19,8);vy=0;onGround=true}
+
+  for(const p of pickups){p.rotation.y+=dt*2;if(p.visible&&p.position.distanceTo(new THREE.Vector3(player.position.x,player.position.y+.7,player.position.z))<1)collect(p)}
+  if(game==='blaster'){for(const e of enemies){if(!e.visible)continue;e.userData.phase+=dt;e.position.x+=Math.sin(e.userData.phase)*dt*1.4;e.position.z+=Math.cos(e.userData.phase*.7)*dt*.9;e.userData.aiShot=(e.userData.aiShot||0)+dt;if(e.userData.aiShot>2.4+Math.random()*1.8){e.userData.aiShot=0;const targets=enemies.filter(t=>t!==e&&t.visible);if(targets.length){const target=targets[Math.floor(Math.random()*targets.length)];const start=e.position.clone().add(new THREE.Vector3(0,1,0));const direction=target.position.clone().add(new THREE.Vector3(0,.8,0)).sub(start).normalize();const shot=sphere(world,start.x,start.y,start.z,.11,mat(0xff7448));shot.userData={direction,target,life:0,botShot:true};bullets.push(shot);}}}for(let i=bullets.length-1;i>=0;i--){const b=bullets[i];b.position.addScaledVector(b.userData.direction,dt*28);b.userData.life+=dt;const t=b.userData.target;if(t&&t.visible&&b.position.distanceTo(t.position.clone().add(new THREE.Vector3(0,.8,0)))<1.1){t.visible=false;if(!b.userData.botShot)addScore(5);toast.textContent=b.userData.botShot?'Bots are fighting!':'Bot blasted! +5';world.remove(b);bullets.splice(i,1);continue}if(b.userData.life>1.3){world.remove(b);bullets.splice(i,1)}}}
+  if(game==='carsim'&&car&&player){car.position.copy(player.position);car.position.y=0;car.rotation.y=player.rotation.y;}
+  if(game==='tower'&&player&&player.position.z<-32&&player.position.y<1){addScore(20);toast.textContent='🏆 Tower summit reached! +20';player.position.set(0,0,25);}
+  if(game==='prison'&&player){const got=pickups.filter(p=>p.userData.type==='prisonkey'&&!p.visible).length;$('#hideRole').textContent='Keycards: '+got+'/5';if(got>=5&&player.position.distanceTo(new THREE.Vector3(0,0,-33))<7){addScore(20);toast.textContent='🚨 Prison escape successful! +20';player.position.set(0,0,26);pickups.forEach(p=>{if(p.userData.type==='prisonkey')p.visible=true});}}
+  if(game==='garden'&&player){for(const p of pickups){if(p.visible)p.rotation.y+=dt*1.4;}}
+  
+  if(game==='stealbrainrot'&&player){for(const g of crewBots){if(!g.visible)continue;g.userData.phase+=dt;g.position.x+=Math.sin(g.userData.phase)*dt*1.1;g.position.z+=Math.cos(g.userData.phase*.8)*dt*.7;if(g.position.distanceTo(player.position)<1.5){toast.textContent='A goofy guard caught you! Back to base!';player.position.set(0,0,20)}}if(player.position.distanceTo(new THREE.Vector3(0,0,25))<5){const collected=pickups.filter(p=>p.userData.type==='brainrot'&&!p.visible).length;if(collected){addScore(collected*2);toast.textContent='Brainrot delivered! +'+collected*2;pickups.forEach(p=>{if(p.userData.type==='brainrot')p.visible=true})}}}
+  if(game==='zombie'){
+   zombieSpawnTimer+=dt;if(zombieSpawnTimer>=3){zombieSpawnTimer=0;spawnZombie();toast.textContent='A new zombie has arrived!';}
+   for(const e of enemies){if(!e.visible)continue;const d=player.position.clone().sub(e.position);const dist=d.length();if(dist>1.25){d.normalize();e.position.addScaledVector(d,dt*e.userData.speed)}else toast.textContent='Zombie close! Keep moving and FIRE!'}
+   for(let i=bullets.length-1;i>=0;i--){const b=bullets[i];b.position.addScaledVector(b.userData.direction,dt*24);b.userData.life+=dt;const t=b.userData.target;if(t&&t.visible&&b.position.distanceTo(t.position.clone().add(new THREE.Vector3(0,.8,0)))<.85){t.userData.hp--;if(t.userData.hp<=0){t.visible=false;addScore(5);toast.textContent='Zombie defeated! +5'}world.remove(b);bullets.splice(i,1);continue}if(b.userData.life>1.3){world.remove(b);bullets.splice(i,1)}}
+  }
+  if(game==='disaster'&&player){
+   disasterClock+=dt;
+   for(const d of disasterDebris){d.phase+=dt;if(!d.active&&d.phase>2.2){d.active=true;d.warning.visible=true;d.warning.position.set(d.x,.12,d.z);d.mesh.position.set(d.x,9,d.z)}if(d.active){d.warning.visible=d.mesh.position.y>2;d.mesh.position.y-=dt*7;if(d.mesh.position.y<=.8){d.mesh.position.y=.8;d.active=false;d.phase=-Math.random()*1.5;d.warning.visible=false;if(Math.hypot(player.position.x-d.x,player.position.z-d.z)<2.4){toast.textContent='💥 Debris hit nearby! Keep moving!';player.position.x=THREE.MathUtils.clamp(player.position.x+(player.position.x-d.x)*.7,-32,32);player.position.z=THREE.MathUtils.clamp(player.position.z+(player.position.z-d.z)*.7,-36,30);}}}}
+  }
+  if(game==='spacecrew'&&player){
+   if(!spaceOver){spaceTimer=Math.max(0,spaceTimer-dt);$('#hideTimer').textContent='⏱ '+Math.ceil(spaceTimer)+'s';if(spaceTimer<=0){spaceOver=true;toast.textContent=spaceRole==='crew'?'⏱ Time up! The crew ran out of time.':'⏱ Time up! The crew survived.'}}
+   for(const b of crewBots){if(!b.visible||b.userData.caught)continue;b.userData.phase+=dt;const d=player.position.clone().sub(b.position),dist=d.length();if(b.userData.isImpostor&&spaceRole==='crew'&&dist<20&&dist>2){d.normalize();b.position.addScaledVector(d,dt*1.7)}else if(!b.userData.isImpostor&&spaceRole==='impostor'&&dist<10&&dist>2){d.normalize();b.position.addScaledVector(d,-dt*1.4)}else{b.position.x+=Math.sin(b.userData.phase)*dt*.5;b.position.z+=Math.cos(b.userData.phase*.8)*dt*.5}}
+  }
+  if(game==='city'&&player){const panel=$('#cityMapPanel');if(!panel.classList.contains('hidden'))drawCityMap();}
+  if(game==='city'&&cityBots.length){for(const b of cityBots){b.userData.phase+=dt*.5;b.position.x=b.userData.home.x+Math.sin(b.userData.phase)*2;b.position.z=b.userData.home.z+Math.cos(b.userData.phase*.7)*2;if(player&&b.position.distanceTo(player.position)<2.2&&Math.random()<.01)toast.textContent=b.userData.botName+': Hi! Welcome to HMAILZ City.'}}
+  if(game==='city'&&cityRideCar&&player){cityRideCar.position.x=player.position.x;cityRideCar.position.z=player.position.z;cityRideCar.rotation.y=player.rotation.y;}
+  if(game==='pets'&&pet){pet.position.x+=(player.position.x-1.3-pet.position.x)*Math.min(1,dt*3);pet.position.z+=(player.position.z+1-pet.position.z)*Math.min(1,dt*3);pet.position.y=.5+Math.sin(time*4)*.12}
+  if(game==='football'&&ball&&ball.userData.pass){const ps=ball.userData.pass;ps.t+=dt*2.8;ball.position.lerpVectors(ps.start,ps.end,Math.min(1,ps.t));ball.position.y+=Math.sin(Math.min(1,ps.t)*Math.PI)*1.5;if(ps.t>=1){ball.userData.pass=null;ball.position.set(player.position.x,.48,player.position.z-1.4);}}
+  if(game==='football'&&teammate&&player){
+   // Teammate actively runs upfield toward the goal, then loops back to make another run.
+   const tm=teammate.userData;tm.roamPhase=(tm.roamPhase||0)+dt;
+   if(!ball?.userData.pass){
+    if(!tm.goalRunTarget)tm.goalRunTarget=new THREE.Vector3(0,0,-28);
+    const target=tm.goalRunTarget;
+    const dx=target.x-teammate.position.x, dz=target.z-teammate.position.z;
+    const dist=Math.hypot(dx,dz);
+    if(dist<1.6){tm.goalRunGoing=!tm.goalRunGoing;tm.goalRunTarget=tm.goalRunGoing?new THREE.Vector3(0,0,-28):new THREE.Vector3(Math.sin(tm.roamPhase*1.4)*7,0,12+Math.sin(tm.roamPhase)*2);}
+    else {const step=Math.min(dist,dt*3.0);teammate.position.x+=dx/dist*step;teammate.position.z+=dz/dist*step;teammate.rotation.y=Math.atan2(dx,dz);}
+   }
+  }
+  if(game==='football'&&blueTeamBots.length&&player){blueTeamBots.forEach((b,i)=>{b.userData.blueRunPhase=(b.userData.blueRunPhase||0)+dt;const target=new THREE.Vector3(Math.sin(b.userData.blueRunPhase*.55+i)*8,0,-18-i*3);const dx=target.x-b.position.x,dz=target.z-b.position.z,dist=Math.hypot(dx,dz);if(dist>1.2){const step=Math.min(dist,dt*2.6);b.position.x+=dx/dist*step;b.position.z+=dz/dist*step;b.rotation.y=Math.atan2(dx,dz);}});}
+  if(game==='football'&&redTeamBots.length&&ball){
+   // Red opponents chase the live ball, spreading slightly so both pursue it.
+   redTeamBots.forEach((b,i)=>{const target=ball.position.clone();target.x=THREE.MathUtils.clamp(target.x+(b.userData.redChaseOffset||0),-22,22);target.z=THREE.MathUtils.clamp(target.z+(i===0?1.8:-1.8),-29,29);const dx=target.x-b.position.x,dz=target.z-b.position.z,dist=Math.hypot(dx,dz);if(dist>.85){const step=Math.min(dist,dt*(b.userData.chaseSpeed||3.2));b.position.x+=dx/dist*step;b.position.z+=dz/dist*step;b.rotation.y=Math.atan2(dx,dz);}});
+  }
+  if(game==='football'&&ball&&ball.userData.kick){const k=ball.userData.kick;k.t+=dt;const t=Math.min(1,k.t/(k.duration||1));if(k.power&&k.end){ball.position.x=THREE.MathUtils.lerp(k.start.x,k.end.x,t);ball.position.z=THREE.MathUtils.lerp(k.start.z,k.end.z,t);ball.position.y=THREE.MathUtils.lerp(k.start.y,k.end.y,t)+Math.sin(t*Math.PI)*3.8;}else{ball.position.z-=dt*k.speed;ball.position.y=.48+Math.abs(Math.sin(k.t*9))*.45;}ball.rotation.x+=dt*(k.power?16:5);if((k.power&&t>=1)||(!k.power&&ball.position.z < -31)){if(Math.abs(ball.position.x)<5){addScore(k.power?6:3);toast.textContent=k.power?'💥 POWER GOAL! +6 points!':'⚽ GOAL! +3 points!';}else toast.textContent='Missed the goal! Move closer and try again.';ball.userData.kick=null;ball.position.set(player.position.x,.48,player.position.z-1.4);}}
+  if(game==='football'&&ball&&!ball.userData.kick&&!ball.userData.pass){ball.position.x=player.position.x;ball.position.z=player.position.z-1.4;ball.position.y=.48;}
+  if(game==='basketball'&&ball&&ball.userData.shot){const s=ball.userData.shot;const previous=ball.position.clone();s.t+=dt/s.duration;const t=Math.min(1,s.t);ball.position.lerpVectors(s.start,s.end,t);ball.position.y+=Math.sin(t*Math.PI)*Math.min(4.2,s.start.distanceTo(s.end)*.22);
+   // Count only a shot that reaches the hoop from a reasonable shooting position.
+   if(!s.scored&&s.valid&&t>.82&&previous.y>=2.25&&ball.position.y<=2.55&&Math.abs(ball.position.x)<.62){addScore(3);s.scored=true;toast.textContent='🏀 SWISH! +3 points!'}
+   if(t>=1){if(!s.scored)toast.textContent=s.valid?'Missed! Move closer and try again.':'Too far away! Get closer to the hoop.';ball.userData.shot=null;ball.position.y=.55}}
+  if(game==='basketball'&&ball&&!ball.userData.shot){ball.position.x=player.position.x;ball.position.z=player.position.z-1.5;ball.position.y=.55}
+  if(game==='zombie'&&gun)gun.rotation.y=Math.sin(time*2)*.035;
+  if(game==='hideseek'){
+   if(!hideRoundOver){hideTimer=Math.max(0,hideTimer-dt);$('#hideTimer').textContent='Time: '+Math.ceil(hideTimer);}
+   const seekers=[...(player.userData.isSeeker?[player]:[]),...hidePlayers.filter(b=>b.userData.isSeeker)];
+   for(const bot of hidePlayers){if(!bot.visible||bot.userData.caught)continue;bot.userData.phase+=dt;
+    const isSeeker=!!bot.userData.isSeeker;const target=isSeeker?player:player;
+    let vx=0,vz=0;const dxp=target.position.x-bot.position.x,dzp=target.position.z-bot.position.z,dist=Math.hypot(dxp,dzp);
+    if(isSeeker&&hideRole==='hider'&&dist<22){vx=-dxp/(dist||1);vz=-dzp/(dist||1)}else if(isSeeker&&hideRole==='seeker'&&dist>1.5){vx=dxp/(dist||1);vz=dzp/(dist||1)}else if(!isSeeker){vx=Math.sin(bot.userData.phase*.8)*.65;vz=Math.cos(bot.userData.phase*.65)*.65}
+    if(hideRole==='seeker'&&!isSeeker){const away=player.position.clone().sub(bot.position);if(away.length()<12){away.normalize();vx=-away.x;vz=-away.z}}
+    let nx=bot.position.x+vx*dt*2.5,nz=bot.position.z+vz*dt*2.5;const blocked=(x,z)=>hideBuildings.some(o=>Math.abs(x-o.x)<o.w/2+.7&&Math.abs(z-o.z)<o.d/2+.7);if(blocked(nx,nz)){const sideX=bot.position.x+vx*dt*2.5,sideZ=bot.position.z+vz*dt*2.5;const turnX=bot.position.x+vz*dt*2.5,turnZ=bot.position.z-vx*dt*2.5;if(!blocked(sideX,bot.position.z)){nx=sideX;nz=bot.position.z}else if(!blocked(bot.position.x,sideZ)){nx=bot.position.x;nz=sideZ}else if(!blocked(turnX,turnZ)){nx=turnX;nz=turnZ}else{nx=bot.position.x;nz=bot.position.z}}bot.position.x=THREE.MathUtils.clamp(nx,-35,35);bot.position.z=THREE.MathUtils.clamp(nz,-38,30);
+    if(isSeeker&&hideRole==='hider'&&bot.position.distanceTo(player.position)<1.45&&!hideRoundOver){hideRoundOver=true;toast.textContent='Caught! Tap NEW ROUND to try again.';$('#hideRole').textContent='CAUGHT!';}
+    if(hideRole==='seeker'&&!isSeeker&&bot.position.distanceTo(player.position)<1.7&&!bot.userData.caught){bot.userData.caught=true;bot.visible=false;addScore(5);toast.textContent='Tagged a hider! +5';if(hidePlayers.filter(b=>!b.userData.isSeeker&&!b.userData.caught).length===0){hideRoundOver=true;toast.textContent='You found everyone! You win!';}}
+   }
+   if(hideTimer<=0&&!hideRoundOver){hideRoundOver=true;if(hideRole==='hider'){addScore(10);toast.textContent='You survived! Hiders win! +10';}else toast.textContent='Time is up! Some hiders escaped.'}
+  }
+  const camDist=10, target=new THREE.Vector3(player.position.x,player.position.y+1,player.position.z);const camOffset=new THREE.Vector3(Math.sin(cameraYaw)*camDist, cameraHeight, Math.cos(cameraYaw)*camDist);camera.position.lerp(target.clone().add(camOffset),Math.min(1,dt*7));camera.lookAt(target);
+ }
+ renderer.render(scene,camera);
+}
+animate();
+window.addEventListener('beforeunload',()=>{saveLocal();saveProgress(true)});
+</script>
+</body>
+</html>
